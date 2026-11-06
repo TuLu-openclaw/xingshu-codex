@@ -45,7 +45,10 @@ jobs:
         run: |
           $zip = Join-Path $env:RUNNER_TEMP 'nsis.zip'
           $dir = Join-Path $env:RUNNER_TEMP 'nsis'
-          Invoke-WebRequest 'https://sourceforge.net/projects/nsis/files/NSIS%203/3.10/nsis-3.10.zip/download' -OutFile $zip -UseBasicParsing
+          $url = 'https://downloads.sourceforge.net/project/nsis/NSIS%203/3.10/nsis-3.10.zip'
+          curl.exe -L --fail --retry 3 --retry-delay 2 -o $zip $url
+          if (-not (Test-Path $zip)) { throw 'NSIS 下载失败' }
+          Write-Host ("nsis.zip " + (Get-Item $zip).Length + " bytes")
           Expand-Archive $zip -DestinationPath $dir -Force
           $mk = Get-ChildItem $dir -Recurse -Filter makensis.exe | Select-Object -First 1
           if (-not $mk) { throw 'NSIS 解压后找不到 makensis.exe' }
