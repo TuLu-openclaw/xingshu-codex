@@ -125,7 +125,9 @@ namespace XingShuInstaller
 
                 if (silent)
                 {
-                    Install(self, offset, length, target, null, null);
+                    System.Collections.Generic.List<string> warn = new System.Collections.Generic.List<string>();
+                    Install(self, offset, length, target, null, null, warn);
+                    foreach (string w in warn) Console.Error.WriteLine("[warn] " + w);
                     if (!noLaunch) Launch(target);
                     return 0;
                 }
@@ -213,7 +215,7 @@ namespace XingShuInstaller
         }
 
         private static void Install(string self, long offset, long length, string target,
-                                    ProgressBar bar, Label label)
+                                    ProgressBar bar, Label label, System.Collections.Generic.List<string> warnings)
         {
             if (Directory.Exists(target))
             {
@@ -222,11 +224,35 @@ namespace XingShuInstaller
             }
             Extract(self, offset, length, target, bar, label);
             WriteUninstallScripts(target);
-            CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                                        AppName + ".lnk"), target);
-            CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),
-                                        AppName + ".lnk"), target);
-            WriteRegistry(target);
+
+            // 快捷方式与注册表项失败不中断安装：企业策略 / 只读桌面 / 无 COM 环境下
+            // 主体文件已经就位，用户仍可手动进目录双击运行。失败原因收集后统一提示。
+            try
+            {
+                CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                                            AppName + ".lnk"), target);
+            }
+            catch (Exception ex) { warnings.Add("桌面快捷方式创建失败：" + Msg(ex)); }
+
+            try
+            {
+                CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+                                            AppName + ".lnk"), target);
+            }
+            catch (Exception ex) { warnings.Add("开始菜单快捷方式创建失败：" + Msg(ex)); }
+
+            try { WriteRegistry(target); }
+            catch (Exception ex) { warnings.Add("卸载项注册失败：" + Msg(ex)); }
+
+            if (warnings.Count > 0)
+            {
+                try
+                {
+                    File.WriteAllText(Path.Combine(target, "install-warnings.txt"),
+                                      string.Join("\r\n", warnings.ToArray()), new UTF8Encoding(true));
+                }
+                catch { }
+            }
         }
 
         private static void Launch(string target)
@@ -234,6 +260,14 @@ namespace XingShuInstaller
             string exe = Path.Combine(target, AppName + ".exe");
             if (File.Exists(exe))
                 Process.Start(new ProcessStartInfo(exe) { WorkingDirectory = target });
+        }
+
+        /// <summary>反射调 COM 抛的是 TargetInvocationException，取内层才是真实原因。</summary>
+        private static string Msg(Exception ex)
+        {
+            TargetInvocationException tie = ex as TargetInvocationException;
+            if (tie != null && tie.InnerException != null) return tie.InnerException.Message;
+            return ex.Message;
         }
 
         private static void CreateShortcut(string lnkPath, string target)
@@ -343,11 +377,12 @@ namespace XingShuInstaller
 
                 bool ok = false;
                 Exception error = null;
+                System.Collections.Generic.List<string> warnings = new System.Collections.Generic.List<string>();
                 f.Shown += delegate
                 {
                     ThreadPool.QueueUserWorkItem(delegate
                     {
-                        try { Install(self, offset, length, target, bar, status); ok = true; }
+                        try { Install(self, offset, length, target, bar, status, warnings); ok = true; }
                         catch (Exception ex) { error = ex; }
                         finally
                         {
@@ -369,6 +404,13 @@ namespace XingShuInstaller
                     return 1;
                 }
                 if (!ok) return 1;
+
+                if (warnings.Count > 0)
+                {
+                    MessageBox.Show("安装完成，但有以下项目未能完成：\r\n\r\n" + string.Join("\r\n", warnings.ToArray()) +
+                                    "\r\n\r\n程序文件已就位，可直接到安装目录运行。", AppName,
+                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
                 if (!noLaunch &&
                     MessageBox.Show("安装完成。是否立即运行 " + AppName + "？", AppName,
