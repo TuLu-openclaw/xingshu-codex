@@ -60,6 +60,9 @@ export type ActivateResult = {
 
 export type NoticeResult = { ok: boolean; text: string; error?: string };
 
+/** 破甲运行环境（随包插件下载的 Node 运行时）。 */
+export type EnvStatus = { ready: boolean; node: string; version: string; major: number };
+
 export type HsApi = {
   state(): Promise<AppState>;
   memory(): Promise<MemoryPrompt>;
@@ -83,6 +86,8 @@ export type HsApi = {
   licenseReverify(): Promise<ActivateResult>;
   licenseDeactivate(): Promise<LicenseState>;
   licenseDevice(): Promise<string>;
+  envStatus(): Promise<EnvStatus>;
+  envPrepare(): Promise<InstallResult>;
   onLog(cb: (p: LogPayload) => void): () => void;
   onStatus(cb: (p: StatusPayload) => void): () => void;
   onNotify(cb: (p: NotifyPayload) => void): () => void;

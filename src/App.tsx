@@ -14,6 +14,7 @@ import {
   hs,
   type InstalledMap,
   type LicenseState,
+  type EnvStatus,
   type MemoryPrompt,
   type SeepState,
   type Skill,
@@ -42,6 +43,7 @@ import { SkillsPage } from "./pages/SkillsPage";
 import { TutorialPage } from "./pages/TutorialPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ActivationPage } from "./pages/ActivationPage";
+import { EnvSetupPage } from "./pages/EnvSetupPage";
 
 type ViewId = string; // target id | "skills" | "tutorial" | "profile"
 export type StatusLevel = "idle" | "busy" | "ok" | "err";
@@ -55,6 +57,7 @@ const TARGET_ICONS: Record<string, typeof IconSparkles> = {
   claude: IconBot,
   workbuddy: IconGlobe,
   dsh: IconDatabase,
+  "dsh-perfect": IconWorkflow,
   doubao: IconChat,
 };
 
@@ -73,6 +76,8 @@ export function App() {
   const [toastLevel, setToastLevel] = useState<"success" | "error">("success");
   /** 本机卡密授权状态；null = 读取中。 */
   const [license, setLicense] = useState<LicenseState | null>(null);
+  /** 破甲运行环境（Node）；null = 检测中。 */
+  const [env, setEnv] = useState<EnvStatus | null>(null);
 
   // 启动先读授权；未激活 / 已过期都进激活页
   useEffect(() => {
@@ -80,6 +85,14 @@ export function App() {
       .then(setLicense)
       .catch(() => setLicense({ active: false, status: "none", device: "" }));
   }, []);
+
+  // 激活后再检测运行环境；没有就在准备屏里自动下载
+  useEffect(() => {
+    if (!license?.active) return;
+    hs.envStatus()
+      .then(setEnv)
+      .catch(() => setEnv({ ready: false, node: "", version: "", major: 0 }));
+  }, [license?.active]);
 
   // 窗口标题跟随变体（免费版 / 付费版 Pro）
   useEffect(() => {
@@ -267,6 +280,19 @@ export function App() {
   }
   if (!license.active) {
     return <ActivationPage license={license} onActivated={setLicense} />;
+  }
+
+  // 运行环境没准备好：激活后自动下载 Node / npm / pnpm
+  if (env && !env.ready) {
+    return (
+      <EnvSetupPage
+        onDone={() => {
+          hs.envStatus()
+            .then(setEnv)
+            .catch(() => setEnv({ ready: true, node: "", version: "", major: 0 }));
+        }}
+      />
+    );
   }
 
   return (

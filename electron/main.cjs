@@ -7,7 +7,7 @@
 */
 
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require("electron");
-const { spawn, execFile } = require("node:child_process");
+const { spawn, execFile, execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -59,6 +59,7 @@ const INSTALL_SCRIPTS = [
   "install-workbuddy.ps1",
   "install-dsh.ps1",
   "install-opencode.ps1",
+  "install-dsh-perfect.ps1",
 ];
 
 function hasScripts(dir) {
@@ -143,6 +144,7 @@ const SCRIPTS = {
   // WorkBuddy 国内版：同一个脚本，靠 -ConfigDir 指到 ~/.workbuddy 区分
   "workbuddy-cn": "install-workbuddy.ps1",
   dsh: "install-dsh.ps1",
+  "dsh-perfect": "install-dsh-perfect.ps1",
   doubao: "install-doubao.ps1",
 };
 
@@ -271,6 +273,9 @@ function installArgs(targetId, promptFile) {
       ];
     case "dsh":
       return ["-File", file, "-SourcePrompt", promptFile, "-SkillsSource", skills];
+    case "dsh-perfect":
+      // 随包插件（kits/dsh-perfect）自带提示词与运行环境，不需要外部提示词文件
+      return ["-File", file];
     default:
       return ["-File", file, "-SourcePrompt", promptFile];
   }
@@ -508,6 +513,43 @@ function listSkills() {
 }
 
 
+// ---------- 破甲运行环境 ----------
+
+/** 随包插件下到 %LOCALAPPDATA%\XingshuArmor\runtime，或系统 PATH 里的 node。 */
+function findNodeExe() {
+  const roots = [
+    path.join(process.env.LOCALAPPDATA || "", "XingshuArmor", "runtime"),
+  ];
+  for (const root of roots) {
+    try {
+      for (const d of fs.readdirSync(root, { withFileTypes: true })) {
+        if (!d.isDirectory()) continue;
+        const exe = path.join(root, d.name, "node.exe");
+        if (fs.existsSync(exe)) return exe;
+      }
+    } catch {
+      /* 目录不存在 = 还没准备过 */
+    }
+  }
+  const sys = path.join(process.env.ProgramFiles || "", "nodejs", "node.exe");
+  if (fs.existsSync(sys)) return sys;
+  return null;
+}
+
+function envStatus() {
+  const exe = findNodeExe();
+  if (!exe) return { ready: false, node: "", version: "", major: 0 };
+  let version = "";
+  try {
+    version = String(execFileSync(exe, ["--version"], { encoding: "utf8" })).trim();
+  } catch {
+    return { ready: false, node: exe, version: "", major: 0 };
+  }
+  const m = /^v(\d+)\./.exec(version);
+  const major = m ? Number(m[1]) : 0;
+  return { ready: major >= 22, node: exe, version, major };
+}
+
 // ---------- IPC ----------
 
 function registerIpc() {
@@ -682,6 +724,12 @@ function registerIpc() {
   });
 
   ipcMain.handle("tool:skills:list", () => listSkills());  ipcMain.handle("tool:skills:save", (_e, disabled) => writeDisabledSkills(disabled || []));
+
+  // ---------- 破甲运行环境（激活后自动准备 Node / npm / pnpm） ----------
+  ipcMain.handle("env:status", () => envStatus());
+  ipcMain.handle("env:prepare", () =>
+    runPowerShell(["-File", p("scripts", "prepare-env.ps1")], "准备破甲运行环境", 1800000),
+  );
 
   // ---------- 卡密授权 ----------
   ipcMain.handle("license:state", () => licenseMod().state());

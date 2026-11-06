@@ -95,6 +95,18 @@
       {
         "from": "build/icon-256.png",
         "to": "icon.png"
+      },
+      {
+        "from": "install-dsh-perfect.ps1",
+        "to": "install-dsh-perfect.ps1"
+      },
+      {
+        "from": "scripts/prepare-env.ps1",
+        "to": "scripts/prepare-env.ps1"
+      },
+      {
+        "from": "kits",
+        "to": "kits"
       }
     ],
     "win": {

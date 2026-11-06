@@ -19,6 +19,10 @@ export type Target = {
   uninstallLabel: string;
   /** 主视觉卡片的图标字 */
   icon: string;
+  /** 对应应用的官方下载页；留空则不显示下载按钮 */
+  downloadUrl?: string;
+  /** 下载按钮文案 */
+  downloadLabel?: string;
 };
 
 /** 所有目标共用的导语：提示词来自随包的 memory 目录，技能库来自 Seep 工作台。 */
@@ -35,6 +39,8 @@ export const TARGETS: Target[] = [
     title: "顶尖破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 Codex",
+    downloadUrl: "https://chatgpt.com/download",
+    downloadLabel: "下载 Codex",
   },
   {
     id: "zcode",
@@ -53,6 +59,8 @@ export const TARGETS: Target[] = [
     title: "Cursor 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 Cursor",
+    downloadUrl: "https://cursor.com/downloads",
+    downloadLabel: "下载 Cursor",
   },
   {
     // OpenCode：全局规则 ~/.config/opencode/AGENTS.md，技能 ~/.config/opencode/skills
@@ -63,6 +71,8 @@ export const TARGETS: Target[] = [
     title: "OpenCode 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 OpenCode",
+    downloadUrl: "https://opencode.ai/",
+    downloadLabel: "下载 OpenCode",
   },
   {
     id: "claude",
@@ -72,6 +82,8 @@ export const TARGETS: Target[] = [
     title: "Claude 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 Claude",
+    downloadUrl: "https://claude.ai/download",
+    downloadLabel: "下载 Claude",
   },
   {
     id: "workbuddy",
@@ -101,6 +113,8 @@ export const TARGETS: Target[] = [
     title: "DeepSeek Harness 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 DeepSeek",
+    downloadUrl: "https://deepseek-harness.github.io/",
+    downloadLabel: "下载 DeepSeek Harness",
   },
   {
     id: "doubao",
@@ -110,6 +124,22 @@ export const TARGETS: Target[] = [
     title: "豆包破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载豆包",
+    downloadUrl: "https://www.doubao.com/download",
+    downloadLabel: "下载豆包",
+  },
+  {
+    // DSH 完美破甲：随包 xingshu-armor 插件，自带提示词与 Node 运行时
+    id: "dsh-perfect",
+    icon: "Ds",
+    nav: "DSH 完美破甲",
+    eyebrow: "DEEPSEEK HARNESS · 完美破甲",
+    title: "DSH 完美破甲",
+    desc:
+      "随包插件直接装进本机 DSH：自带内置规则、自动准备 Node 运行环境，" +
+      "重启 DSH 后输入框上方显示「星枢破甲已激活」，聊天里发「星枢」即可启用。",
+    uninstallLabel: "卸载 DSH 完美破甲",
+    downloadUrl: "https://deepseek-harness.github.io/",
+    downloadLabel: "下载 DeepSeek Harness",
   },
 ];
 

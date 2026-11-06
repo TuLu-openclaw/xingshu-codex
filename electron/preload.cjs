@@ -21,6 +21,10 @@ contextBridge.exposeInMainWorld("hs", {
   quit: () => ipcRenderer.invoke("tool:quit"),
   win: (action) => ipcRenderer.invoke("tool:win", action),
 
+  // 破甲运行环境（Node / npm / pnpm）
+  envStatus: () => ipcRenderer.invoke("env:status"),
+  envPrepare: () => ipcRenderer.invoke("env:prepare"),
+
   // 卡密授权
   licenseState: () => ipcRenderer.invoke("license:state"),
   licenseNotice: () => ipcRenderer.invoke("license:notice"),

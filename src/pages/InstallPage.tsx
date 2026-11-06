@@ -1,6 +1,6 @@
 import type { Target } from "../data/targets";
 import type { StatusLevel } from "../App";
-import type { MemoryPrompt } from "../lib/hs";
+import { hs, type MemoryPrompt } from "../lib/hs";
 import { cx } from "../lib/cx";
 
 type Props = {
@@ -66,6 +66,15 @@ export function InstallPage({
         </div>
 
         <div className="app-inline-actions">
+          {target.downloadUrl ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => hs.openQQ(target.downloadUrl as string)}
+            >
+              {target.downloadLabel || "下载应用"}
+            </button>
+          ) : null}
           {target.id === "codex" && (
             <button type="button" className="btn btn-secondary" disabled={busy} onClick={onRestart}>
               重启 Codex

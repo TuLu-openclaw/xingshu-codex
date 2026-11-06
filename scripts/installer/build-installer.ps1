@@ -1,4 +1,4 @@
-# 星枢破甲工具 · 安装版构建脚本
+﻿# 星枢破甲工具 · 安装版构建脚本
 #
 # 用法：
 #   powershell -ExecutionPolicy Bypass -File scripts\installer\build-installer.ps1
