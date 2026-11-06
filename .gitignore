@@ -44,3 +44,6 @@ dist_nuitka/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 安装器构建中间产物
+scripts/installer/stub.exe

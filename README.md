@@ -81,6 +81,21 @@ npm run dist
 便携版没有安装器，删文件夹不等于卸载干净：`portable-uninstall.ps1` + 同目录
 `卸载-便携版.bat` 会一并清掉 `%APPDATA%\xingshu-free`、状态文件与快捷方式。
 
+### 安装版（单文件 exe）
+
+```powershell
+# 先用 scripts\build.mjs 出便携版 zip，再把它包成自解压安装包
+powershell -ExecutionPolicy Bypass -File scripts\installer\build-installer.ps1
+```
+
+产物：`release\星枢破甲工具-安装版-<版本>.exe`。
+
+- 单文件自解压：`stub.exe`（csc 编译，带品牌图标与版本信息）+ 便携版 zip + 32 字节 trailer
+- 安装到 `%LOCALAPPDATA%\星枢破甲工具`，建桌面 / 开始菜单快捷方式，写 HKCU 卸载项
+- 支持静默：`/silent`、`/nolaunch`、`/dir <路径>`；提取自检：`/extract <目录>`
+- 卸载：开始菜单「卸载」或 `设置 → 应用`，卸载脚本在安装目录 `uninstall.ps1`
+- 不依赖 NSIS / Inno / electron-builder
+
 换图标：替换 `build/icon.png`（512×512 方形 PNG）后重新 `npm run dist` 即可，
 或直接跑 `python scripts/make-icon.py` / `python scripts/make-ico.py` 重建。
 
