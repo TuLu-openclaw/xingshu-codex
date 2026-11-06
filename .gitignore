@@ -47,3 +47,6 @@ desktop.ini
 
 # 安装器构建中间产物
 scripts/installer/stub.exe
+
+# 卡密授权配置（含 appkey / rc4key，绝不入库）
+license.config.json

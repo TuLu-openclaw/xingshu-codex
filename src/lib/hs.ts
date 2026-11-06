@@ -43,6 +43,9 @@ export type LicenseState = {
   active: boolean;
   status: "none" | "active" | "expired";
   device: string;
+  /** 授权服务配置是否就绪（缺 license.config.json 时为 false） */
+  configured?: boolean;
+  configError?: string;
   kamiMasked?: string;
   vip?: number;
   ktype?: "code" | "num";

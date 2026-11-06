@@ -63,6 +63,16 @@ export function InstallPage({
               </div>
             </span>
           </div>
+          <div className="settings-row">
+            <span className="settings-row-copy">
+              <div className="settings-row-title">依赖</div>
+              <div className="settings-row-desc">
+                {target.requires
+                  ? target.requires
+                  : "无额外依赖：本目标只写配置文件与技能目录，不需要额外运行时。"}
+              </div>
+            </span>
+          </div>
         </div>
 
         <div className="app-inline-actions">

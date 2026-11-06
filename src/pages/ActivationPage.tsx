@@ -35,7 +35,8 @@ export function ActivationPage({ license, onActivated }: Props) {
 
   useEffect(() => {
     if (license.status === "expired") setError("本机授权已过期，请续费后重新激活。");
-  }, [license.status]);
+    if (license.configured === false) setError(license.configError || "授权服务未配置，无法激活。");
+  }, [license.status, license.configured, license.configError]);
 
   const submit = useCallback(async () => {
     if (busy) return;
@@ -155,7 +156,7 @@ export function ActivationPage({ license, onActivated }: Props) {
             />
           </label>
 
-          <button type="button" className="ax-submit" disabled={busy || !kami} onClick={submit}>
+          <button type="button" className="ax-submit" disabled={busy || !kami || license.configured === false} onClick={submit}>
             {busy ? "正在校验…" : "立即激活"}
           </button>
 

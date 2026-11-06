@@ -23,6 +23,8 @@ export type Target = {
   downloadUrl?: string;
   /** 下载按钮文案 */
   downloadLabel?: string;
+  /** 这个目标额外需要的依赖（没有就是无额外依赖） */
+  requires?: string;
 };
 
 /** 所有目标共用的导语：提示词来自随包的 memory 目录，技能库来自 Seep 工作台。 */
@@ -50,6 +52,8 @@ export const TARGETS: Target[] = [
     title: "ZCode 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 ZCode",
+    downloadUrl: "https://zcode.z.ai/cn/docs/install",
+    downloadLabel: "下载 ZCode",
   },
   {
     id: "cursor",
@@ -93,6 +97,8 @@ export const TARGETS: Target[] = [
     title: "WorkBuddy 破甲（国际版）",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 WorkBuddy",
+    downloadUrl: "https://www.workbuddy.ai/",
+    downloadLabel: "下载 WorkBuddy",
   },
   {
     // WorkBuddy 国内版：同一个程序的两套发行，数据目录不同
@@ -104,6 +110,8 @@ export const TARGETS: Target[] = [
     title: "WorkBuddy 破甲（国内版）",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 WorkBuddy 国内版",
+    downloadUrl: "https://www.workbuddy.cn/",
+    downloadLabel: "下载 WorkBuddy",
   },
   {
     id: "dsh",
@@ -113,7 +121,7 @@ export const TARGETS: Target[] = [
     title: "DeepSeek Harness 破甲",
     desc: TARGET_DESC,
     uninstallLabel: "卸载 DeepSeek",
-    downloadUrl: "https://deepseek-harness.github.io/",
+    downloadUrl: "https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe",
     downloadLabel: "下载 DeepSeek Harness",
   },
   {
@@ -138,8 +146,9 @@ export const TARGETS: Target[] = [
       "随包插件直接装进本机 DSH：自带内置规则、自动准备 Node 运行环境，" +
       "重启 DSH 后输入框上方显示「星枢破甲已激活」，聊天里发「星枢」即可启用。",
     uninstallLabel: "卸载 DSH 完美破甲",
-    downloadUrl: "https://deepseek-harness.github.io/",
+    downloadUrl: "https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe",
     downloadLabel: "下载 DeepSeek Harness",
+    requires: "Node 运行环境（激活后自动下载）",
   },
 ];
 

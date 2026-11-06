@@ -1,0 +1,8 @@
+{
+  "host": "wy.llua.cn",
+  "appid": "填写你的应用ID",
+  "appkey": "填写你的程序秘钥",
+  "rc4key": "填写你的RC4秘钥",
+  "success": 0,
+  "timeout": 15000
+}
