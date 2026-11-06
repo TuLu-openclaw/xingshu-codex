@@ -81,9 +81,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "v5.0.0"
+          # gh 上传会把中文文件名弄成 "-.-5.0.0.exe"，先改成 ASCII 再传
+          $zip = Get-ChildItem release -Filter *便携版*.zip | Select-Object -First 1
+          $exe = Get-ChildItem release -Filter *安装版*.exe | Select-Object -First 1
+          if ($zip) { Copy-Item $zip.FullName (Join-Path release "xingshu-kit-5.0.0-win-x64-portable.zip") -Force }
+          if ($exe) { Copy-Item $exe.FullName (Join-Path release "xingshu-kit-5.0.0-win-x64-setup.exe") -Force }
+
           gh release view $tag 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create $tag --title "星枢破甲工具 $tag" --notes "CI 构建" }
-          Get-ChildItem release -File | Where-Object { $_.Extension -in ".zip", ".exe" } | ForEach-Object {
+          Get-ChildItem release -File | Where-Object { $_.Name -like "xingshu-kit-*" } | ForEach-Object {
             Write-Host ("上传 " + $_.Name)
             gh release upload $tag $_.FullName --clobber
           }
