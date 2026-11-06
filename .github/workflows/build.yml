@@ -1,0 +1,71 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 写入卡密授权配置（来自 secret）
+        shell: pwsh
+        env:
+          LICENSE_JSON: ${{ secrets.LICENSE_CONFIG_JSON }}
+        run: |
+          if (-not $env:LICENSE_JSON) {
+            throw "缺少仓库 secret LICENSE_CONFIG_JSON（内容为 license.config.json 的全文）"
+          }
+          [IO.File]::WriteAllText("$PWD\license.config.json", $env:LICENSE_JSON, (New-Object Text.UTF8Encoding($false)))
+          $c = $env:LICENSE_JSON | ConvertFrom-Json
+          Write-Host ("授权配置已写入：appid=" + $c.appid + " success=" + $c.success)
+
+      - name: 安装依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 构建渲染层
+        run: npm run build
+
+      - name: 打包（便携版 + 安装版）
+        run: python scripts/package.py
+
+      - name: 校验产物
+        shell: pwsh
+        run: |
+          Get-ChildItem release -File | ForEach-Object {
+            Write-Host ("{0}  {1} bytes" -f $_.Name, $_.Length)
+          }
+          $zip = Get-ChildItem release -Filter *.zip | Select-Object -First 1
+          if (-not $zip) { throw "没有产出 zip" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $a = [IO.Compression.ZipFile]::OpenRead($zip.FullName)
+          $names = $a.Entries.FullName
+          foreach ($need in @("星枢破甲工具.exe", "resources/app/package.json", "resources/license.config.json")) {
+            if ($names -notcontains $need) { throw "zip 内缺少 $need" }
+          }
+          $a.Dispose()
+          Write-Host "zip 结构校验通过"
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: xingshu-kit-windows-x64
+          path: |
+            release/*.zip
+            release/*.exe
+          compression-level: 0
+          retention-days: 14
