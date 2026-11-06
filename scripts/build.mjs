@@ -25,7 +25,9 @@ const variant = process.argv[2] ||
   JSON.parse(readFileSync(join(appDir, "variant.json"), "utf8")).variant;
 
 /** 界面左上角与个人中心展示的版本号（与安装包文件名的版本无关）。 */
-const DISPLAY_VERSION = "2.0";
+const DISPLAY_VERSION = "5.0";
+const COPYRIGHT = "星枢[未来科技]";
+const AUTHOR = "星枢";
 
 const VARIANTS = {
   free: {
@@ -53,7 +55,11 @@ if (!cfg) {
 // 1) 写变体标记（主进程与渲染层都读这个文件）
 writeFileSync(
   join(appDir, "variant.json"),
-  JSON.stringify({ variant, appName: cfg.appName, version: DISPLAY_VERSION }, null, 2) + "\n",
+  JSON.stringify(
+    { variant, appName: cfg.appName, version: DISPLAY_VERSION, copyright: COPYRIGHT, author: AUTHOR },
+    null,
+    2,
+  ) + "\n",
   "utf8",
 );
 console.log(`[build] 变体 = ${variant}（${cfg.appName}）`);
