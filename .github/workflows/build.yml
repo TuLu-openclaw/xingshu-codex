@@ -7,7 +7,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -72,3 +72,19 @@ jobs:
             release/*.exe
           compression-level: 0
           retention-days: 14
+
+      # 直接发到 Release：用户从网页点下载比拉 Actions artifact 稳得多
+      - name: 发布到 Release
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "v5.0.0"
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -ne 0) { gh release create $tag --title "星枢破甲工具 $tag" --notes "CI 构建" }
+          Get-ChildItem release -File | Where-Object { $_.Extension -in ".zip", ".exe" } | ForEach-Object {
+            Write-Host ("上传 " + $_.Name)
+            gh release upload $tag $_.FullName --clobber
+          }
+          gh release view $tag --json assets --jq '.assets[] | "\(.name)  \(.size) bytes"'
