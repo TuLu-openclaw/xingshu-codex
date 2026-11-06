@@ -41,6 +41,9 @@ jobs:
         run: npm run build
 
       - name: 打包（便携版 + 安装版）
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
         run: python scripts/package.py
 
       - name: 校验产物

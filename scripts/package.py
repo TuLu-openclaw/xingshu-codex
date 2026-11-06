@@ -20,6 +20,14 @@ import sys
 import urllib.request
 import zipfile
 
+# CI（windows-latest）默认 stdout 是 cp1252，打中文会 UnicodeEncodeError，
+# 这里统一改成 UTF-8；本地已支持时同样安全。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STAGE = os.path.join(ROOT, "release", "win-unpacked")
 CACHE = os.path.join(ROOT, ".cache")
