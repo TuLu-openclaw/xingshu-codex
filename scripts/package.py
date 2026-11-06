@@ -160,11 +160,33 @@ def make_zip(version):
 
 
 def make_installer(payload, version):
+    """优先用 NSIS 出真正的安装包（向导页 / 目录选择 / 卸载项）；没有 NSIS 时退回自解压 stub。"""
+    out = os.path.join(ROOT, "release", f"星枢破甲工具-安装版-{version}.exe")
+    nsi = os.path.join(ROOT, "scripts", "installer", "xingshu.nsi")
+    makensis = os.environ.get("MAKENSIS") or shutil.which("makensis")
+
+    if makensis and os.path.exists(makensis) and os.path.exists(nsi):
+        if os.path.exists(out):
+            os.remove(out)
+        cmd = [
+            makensis, "/NOCD", "/INPUTCHARSET", "UTF8",
+            f"/DAPP_VERSION={version}",
+            "/DCOMPRESS_MODE=" + os.environ.get("NSIS_COMPRESS", "lzma"),
+            os.path.relpath(nsi, ROOT),
+        ]
+        log("  NSIS 打包（首次约 3–8 分钟）…")
+        r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+        if os.path.exists(out):
+            log(f"  安装版：{os.path.basename(out)}（{os.path.getsize(out)/1024/1024:.1f} MB，NSIS）")
+            return out
+        log("  [警告] NSIS 构建失败，改用自解压 stub：" + ((r.stderr or r.stdout or "")[-400:]))
+    else:
+        log("  未找到 makensis，改用自解压 stub")
+
     ps = os.path.join(ROOT, "scripts", "installer", "build-installer.ps1")
     if not os.path.exists(ps):
         log("  [跳过] 没有 build-installer.ps1")
         return None
-    out = os.path.join(ROOT, "release", f"星枢破甲工具-安装版-{version}.exe")
     cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps,
            "-Payload", payload, "-Out", out, "-Version", version,
            "-Icon", os.path.join(ROOT, "build", "icon.ico")]

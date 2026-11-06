@@ -40,6 +40,18 @@ jobs:
       - name: 构建渲染层
         run: npm run build
 
+      - name: 准备 NSIS（真正的安装包）
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'nsis.zip'
+          $dir = Join-Path $env:RUNNER_TEMP 'nsis'
+          Invoke-WebRequest 'https://sourceforge.net/projects/nsis/files/NSIS%203/3.10/nsis-3.10.zip/download' -OutFile $zip -UseBasicParsing
+          Expand-Archive $zip -DestinationPath $dir -Force
+          $mk = Get-ChildItem $dir -Recurse -Filter makensis.exe | Select-Object -First 1
+          if (-not $mk) { throw 'NSIS 解压后找不到 makensis.exe' }
+          "MAKENSIS=$($mk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host ("makensis: " + $mk.FullName)
+
       - name: 打包（便携版 + 安装版）
         env:
           PYTHONIOENCODING: utf-8
