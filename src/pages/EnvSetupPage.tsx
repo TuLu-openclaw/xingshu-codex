@@ -14,6 +14,8 @@ const STEPS: Step[] = [
   { key: "arch", label: "识别本机架构", hint: "x64 / arm64 / x86" },
   { key: "node", label: "准备 Node 运行环境", hint: "缺少或过旧时自动下载 LTS 版" },
   { key: "npm", label: "准备 npm / pnpm", hint: "插件安装依赖的包管理器" },
+  { key: "python", label: "准备 Python 运行环境", hint: "优先复用系统 Python，缺则下载便携版" },
+  { key: "deps", label: "安装 pip 依赖", hint: "mcp / pytest / frida-tools" },
   { key: "check", label: "校验可用性", hint: "版本与可执行性检查" },
 ];
 
@@ -35,13 +37,13 @@ export function EnvSetupPage({ onDone }: Props) {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
 
-  // 日志里出现的阶段关键词 → 推进进度条
+  // 日志里出现的阶段关键词 → 推进进度条（对应 prepare-env.ps1 的输出）
   useEffect(() => {
     const s = log.toLowerCase();
-    if (/runtime_ok|node\.exe/.test(s)) setStep(4);
-    else if (/pnpm/.test(s)) setStep(3);
-    else if (/npm/.test(s)) setStep(2);
-    else if (/node/.test(s)) setStep(1);
+    if (/deps_ok/.test(s)) setStep(6);
+    else if (/pip install|deps_partial/.test(s)) setStep(4);
+    else if (/python_ok|python 运行环境/.test(s)) setStep(4);
+    else if (/node_ok|ensure-runtime|node 运行环境/.test(s)) setStep(1);
   }, [log]);
 
   const run = useCallback(async () => {
