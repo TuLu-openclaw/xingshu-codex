@@ -21,6 +21,14 @@ contextBridge.exposeInMainWorld("hs", {
   quit: () => ipcRenderer.invoke("tool:quit"),
   win: (action) => ipcRenderer.invoke("tool:win", action),
 
+  // 卡密授权
+  licenseState: () => ipcRenderer.invoke("license:state"),
+  licenseNotice: () => ipcRenderer.invoke("license:notice"),
+  licenseActivate: (kami) => ipcRenderer.invoke("license:activate", kami),
+  licenseReverify: () => ipcRenderer.invoke("license:reverify"),
+  licenseDeactivate: () => ipcRenderer.invoke("license:deactivate"),
+  licenseDevice: () => ipcRenderer.invoke("license:device"),
+
   onLog: (cb) => {
     const h = (_e, payload) => cb(payload);
     ipcRenderer.on("tool:log", h);

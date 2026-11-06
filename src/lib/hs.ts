@@ -38,6 +38,28 @@ export type LogPayload = { label: string; text: string };
 export type StatusPayload = { label: string; state: "running" | "idle" };
 export type NotifyPayload = { level: "info" | "warn"; text: string };
 
+/** 本机授权状态（卡密）。 */
+export type LicenseState = {
+  active: boolean;
+  status: "none" | "active" | "expired";
+  device: string;
+  kamiMasked?: string;
+  vip?: number;
+  ktype?: "code" | "num";
+  num?: number;
+  activatedAt?: string;
+  lastCheck?: string;
+};
+
+export type ActivateResult = {
+  ok: boolean;
+  message: string;
+  state?: LicenseState;
+  code?: number;
+};
+
+export type NoticeResult = { ok: boolean; text: string; error?: string };
+
 export type HsApi = {
   state(): Promise<AppState>;
   memory(): Promise<MemoryPrompt>;
@@ -55,6 +77,12 @@ export type HsApi = {
   openQQ(url: string): Promise<{ ok: boolean }>;
   quit(): Promise<{ ok: boolean }>;
   win(action: "minimize" | "maximize" | "close"): Promise<{ ok: boolean }>;
+  licenseState(): Promise<LicenseState>;
+  licenseNotice(): Promise<NoticeResult>;
+  licenseActivate(kami: string): Promise<ActivateResult>;
+  licenseReverify(): Promise<ActivateResult>;
+  licenseDeactivate(): Promise<LicenseState>;
+  licenseDevice(): Promise<string>;
   onLog(cb: (p: LogPayload) => void): () => void;
   onStatus(cb: (p: StatusPayload) => void): () => void;
   onNotify(cb: (p: NotifyPayload) => void): () => void;

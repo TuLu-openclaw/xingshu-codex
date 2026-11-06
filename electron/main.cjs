@@ -12,6 +12,16 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
+/* 卡密模块在 app ready 后才拿到 userData 路径，这里延迟 require。 */
+let license = null;
+function licenseMod() {
+  if (!license) {
+    process.env.XS_USERDATA = app.getPath("userData");
+    license = require("./license.cjs");
+  }
+  return license;
+}
+
 // 应用名由构建变体决定（scripts/build.mjs 写入 variant.json）
 let APP_NAME = "星枢破甲工具";
 let VARIANT = "free";
@@ -671,8 +681,18 @@ function registerIpc() {
     });
   });
 
-  ipcMain.handle("tool:skills:list", () => listSkills());
-  ipcMain.handle("tool:skills:save", (_e, disabled) => writeDisabledSkills(disabled || []));
+  ipcMain.handle("tool:skills:list", () => listSkills());  ipcMain.handle("tool:skills:save", (_e, disabled) => writeDisabledSkills(disabled || []));
+
+  // ---------- 卡密授权 ----------
+  ipcMain.handle("license:state", () => licenseMod().state());
+  ipcMain.handle("license:notice", () => licenseMod().notice());
+  ipcMain.handle("license:activate", (_e, kami) => licenseMod().activate(kami));
+  ipcMain.handle("license:reverify", () => licenseMod().reverify());
+  ipcMain.handle("license:deactivate", () => {
+    licenseMod().clearLicense();
+    return licenseMod().state();
+  });
+  ipcMain.handle("license:device", () => licenseMod().deviceCode());
 
   ipcMain.handle("tool:openQQ", async (_e, url) => {
     if (typeof url !== "string" || !/^https?:\/\//.test(url)) {

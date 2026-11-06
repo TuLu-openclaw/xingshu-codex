@@ -13,6 +13,7 @@ import {
 import {
   hs,
   type InstalledMap,
+  type LicenseState,
   type MemoryPrompt,
   type SeepState,
   type Skill,
@@ -40,6 +41,7 @@ import { SeepPage } from "./pages/SeepPage";
 import { SkillsPage } from "./pages/SkillsPage";
 import { TutorialPage } from "./pages/TutorialPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { ActivationPage } from "./pages/ActivationPage";
 
 type ViewId = string; // target id | "skills" | "tutorial" | "profile"
 export type StatusLevel = "idle" | "busy" | "ok" | "err";
@@ -69,6 +71,15 @@ export function App() {
   const [logText, setLogText] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [toastLevel, setToastLevel] = useState<"success" | "error">("success");
+  /** 本机卡密授权状态；null = 读取中。 */
+  const [license, setLicense] = useState<LicenseState | null>(null);
+
+  // 启动先读授权；未激活 / 已过期都进激活页
+  useEffect(() => {
+    hs.licenseState()
+      .then(setLicense)
+      .catch(() => setLicense({ active: false, status: "none", device: "" }));
+  }, []);
 
   // 窗口标题跟随变体（免费版 / 付费版 Pro）
   useEffect(() => {
@@ -243,6 +254,21 @@ export function App() {
     </button>
   );
 
+  // 授权门禁：未激活或已过期都先走激活页
+  if (!license) {
+    return (
+      <div className="boot-screen">
+        <div className="boot-card">
+          <div className="boot-mark">枢</div>
+          <div className="boot-text">正在校验本机授权…</div>
+        </div>
+      </div>
+    );
+  }
+  if (!license.active) {
+    return <ActivationPage license={license} onActivated={setLicense} />;
+  }
+
   return (
     <div className="app-shell settings-mode">
       <div className="settings-shell-full">
@@ -348,6 +374,16 @@ export function App() {
                 version={APP_VERSION}
                 status={status}
                 level={level}
+                license={license}
+                onReverify={async () => {
+                  const r = await hs.licenseReverify();
+                  if (r.state) setLicense(r.state);
+                  return { ok: r.ok, message: r.message };
+                }}
+                onDeactivate={async () => {
+                  const s = await hs.licenseDeactivate();
+                  setLicense(s);
+                }}
                 onQuit={() => hs.quit()}
               />
             )}

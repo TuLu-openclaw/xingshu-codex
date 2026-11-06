@@ -31,6 +31,7 @@ import "./styles/model-config.css";
 import "./styles/chat-links.css";
 import "./styles/composer-autocomplete.css";
 import "./styles/plugins.css";
+import "./styles/enterprise.css";
 import "./styles/extensions.css";
 import "./styles/plugin-launcher.css";
 import "./styles/responsive.css";
