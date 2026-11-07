@@ -64,6 +64,30 @@ if (-not ($Uninstall -or $RestoreMemory -or $Status)) {
     if (-not (Test-Path -LiteralPath $SourcePrompt)) { throw "提示词文件不存在: $SourcePrompt" }
     $srcText = Read-Utf8 $SourcePrompt
     $srcHash = (Get-FileHash -LiteralPath $SourcePrompt -Algorithm SHA256).Hash
+
+    # 豆包全局记忆接口的硬上限（2026-11 实测：12000 字符通过，12001 字符返回
+    # code=671010000 params invalid）。超限时自动改用同目录的精简版提示词。
+    $MAX_MEMO = 12000
+    if ($srcText.Length -gt $MAX_MEMO) {
+        $alt = Join-Path (Split-Path -Parent $SourcePrompt) '豆包破甲.md'
+        if (Test-Path -LiteralPath $alt) {
+            $altText = Read-Utf8 $alt
+            if ($altText.Length -le $MAX_MEMO) {
+                Write-Host ("  [i] 完整提示词 $($srcText.Length) 字符超过豆包上限，改用精简版：豆包破甲.md（$($altText.Length) 字符）") -ForegroundColor Yellow
+                $srcText = $altText
+                $srcHash = (Get-FileHash -LiteralPath $alt -Algorithm SHA256).Hash
+            } else {
+                Write-Host ("  [×] 精简版 豆包破甲.md 也有 $($altText.Length) 字符，仍超过 $MAX_MEMO") -ForegroundColor Red
+            }
+        }
+    }
+    if ($srcText.Length -gt $MAX_MEMO) {
+        Write-Host ("  [×] 豆包全局记忆上限 $MAX_MEMO 字符（实测：12000 通过 / 12001 返回 params invalid），当前 $($srcText.Length) 字符。") -ForegroundColor Red
+        Write-Host  "      处理：在 memory 目录放一份不超过 $MAX_MEMO 字符的精简版「豆包破甲.md」，再点安装。" -ForegroundColor Yellow
+        Write-Host  "      其它目标继续用完整版提示词，互不影响。" -ForegroundColor Yellow
+        Write-Log "Abort: prompt too long ($($srcText.Length) > $MAX_MEMO)"
+        exit 2
+    }
 }
 
 $stateDir = Join-Path $env:USERPROFILE '.doubao\managed-prompts'
@@ -357,7 +381,9 @@ if ($ok) {
     Write-Host "  生效验证：在豆包里开一个通用任务问一句，看是否按星枢规范回应"
     Write-Host "  还原命令：.\install-doubao.ps1 -Uninstall"
 } else {
-    Write-Host "`n[失败] 写进去了但读回来对不上 —— 云端可能有审核或长度截断" -ForegroundColor Red
+    Write-Host "`n[失败] 写入未生效：接口拒绝或内容被截断" -ForegroundColor Red
+Write-Host "      若接口返回 code=671010000 params invalid → 提示词超过豆包 12000 字符上限" -ForegroundColor Yellow
+Write-Host "      若读回 0 字符 → 检查豆包是否已登录、全局记忆开关是否打开" -ForegroundColor Yellow
     Write-Host "  写入前 $($before.len) 字符 / 期望 $($srcText.Length) 字符 / 实际 $($after.len) 字符"
     exit 2
 }

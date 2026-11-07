@@ -488,6 +488,28 @@ if ($KillApp -and $proc) {
 }
 
 $srcText = Read-Utf8 $SourcePrompt
+
+# WorkBuddy 每轮把 memoryBlock 包成 <memory>…</memory> 注入系统提示词，客户端上限 10000 字符。
+# 超限会被静默截断（截到哪儿不可控），所以先拦住，并支持同目录精简版。
+$MAX_MEMO = 10000
+if ($srcText.Trim().Length -gt $MAX_MEMO) {
+    $alt = Join-Path (Split-Path -Parent $SourcePrompt) 'WorkBuddy破甲.md'
+    if (Test-Path -LiteralPath $alt) {
+        $altText = Read-Utf8 $alt
+        if ($altText.Trim().Length -le $MAX_MEMO) {
+            Write-Host ("  [i] 完整提示词 $($srcText.Trim().Length) 字符超过 WorkBuddy 上限，改用精简版：WorkBuddy破甲.md（$($altText.Trim().Length) 字符）") -ForegroundColor Yellow
+            $SourcePrompt = $alt
+            $srcText = $altText
+        }
+    }
+}
+if ($srcText.Trim().Length -gt $MAX_MEMO) {
+    Write-Host ("  [×] WorkBuddy 的 memoryBlock 上限 $MAX_MEMO 字符，当前 $($srcText.Trim().Length) 字符，继续写入会被客户端截断。") -ForegroundColor Red
+    Write-Host  "      处理：在 memory 目录放一份不超过 $MAX_MEMO 字符的「WorkBuddy破甲.md」，再点安装。" -ForegroundColor Yellow
+    Write-Log "Abort: prompt too long ($($srcText.Trim().Length) > $MAX_MEMO)"
+    exit 2
+}
+
 $srcHash = Get-Sha $SourcePrompt
 $now = Get-NowIso
 $steps = 0
