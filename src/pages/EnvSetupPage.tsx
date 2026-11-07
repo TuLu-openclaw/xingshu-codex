@@ -1,36 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
-import { APP_NAME } from "../data/targets";
 import { hs } from "../lib/hs";
+import { APP_NAME } from "../data/targets";
 
-type Props = {
-  /** 环境就绪后进入主界面 */
-  onDone: () => void;
-};
+/**
+ * 运行环境准备（Node / Python / pip 依赖）。
+ *
+ * 关键设计：
+ * - 不是必须的。只有「豆包注入守护」「DSH 完美破甲」「Seep 工作台」需要 Node；
+ *   其余目标（Codex / Claude / Cursor / OpenCode / ZCode / WorkBuddy / DSH）纯文件注入，不依赖运行时。
+ * - 弱机器默认走「轻量」：只准备 Node，跳过 pip 依赖（frida-tools 那种几百 MB 的重活）。
+ * - 日志节流：pip / npm 输出很密，逐块 setState 会把界面刷到卡死，这里 150ms 合并一次。
+ */
 
-type Step = { key: string; label: string; hint: string };
-
-const STEPS: Step[] = [
+const STEPS = [
   { key: "arch", label: "识别本机架构", hint: "x64 / arm64 / x86" },
   { key: "node", label: "准备 Node 运行环境", hint: "缺少或过旧时自动下载 LTS 版" },
-  { key: "npm", label: "准备 npm / pnpm", hint: "插件安装依赖的包管理器" },
+  { key: "pnpm", label: "准备 npm / pnpm", hint: "插件安装依赖的包管理器" },
   { key: "python", label: "准备 Python 运行环境", hint: "优先复用系统 Python，缺则下载便携版" },
-  { key: "deps", label: "安装 pip 依赖", hint: "mcp / pytest / frida-tools" },
-  { key: "check", label: "校验可用性", hint: "版本与可执行性检查" },
+  { key: "pip", label: "安装 pip 依赖", hint: "mcp / pytest / frida-tools（轻量模式会跳过）" },
+  { key: "verify", label: "校验可用性", hint: "版本与可执行性检查" },
 ];
+
+type Props = {
+  onDone: () => void;
+};
 
 export function EnvSetupPage({ onDone }: Props) {
   const [log, setLog] = useState("");
   const [running, setRunning] = useState(false);
   const [failed, setFailed] = useState("");
   const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<"lite" | "full">("lite");
   const logRef = useRef<HTMLPreElement | null>(null);
+  const bufRef = useRef("");
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const off = hs.onLog((p) => {
-      setLog((prev) => (prev + p.text).slice(-20000));
+      bufRef.current = (bufRef.current + p.text).slice(-20000);
+      if (timerRef.current != null) return;
+      // 150ms 合并一次，避免高频输出把渲染打满
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null;
+        const chunk = bufRef.current;
+        bufRef.current = "";
+        setLog((prev) => (prev + chunk).slice(-20000));
+      }, 150);
     });
-    return off;
+    return () => {
+      off();
+      if (timerRef.current != null) window.clearTimeout(timerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -46,35 +66,40 @@ export function EnvSetupPage({ onDone }: Props) {
     else if (/node_ok|ensure-runtime|node 运行环境/.test(s)) setStep(1);
   }, [log]);
 
-  const run = useCallback(async () => {
-    setRunning(true);
-    setFailed("");
-    setLog("");
-    setStep(0);
-    try {
-      const res = await hs.envPrepare();
-      if (res.ok) {
-        setStep(STEPS.length);
-        const st = await hs.envStatus();
-        if (st.ready) {
-          setTimeout(onDone, 500);
+  const run = useCallback(
+    async (which: "lite" | "full") => {
+      setRunning(true);
+      setFailed("");
+      setLog("");
+      setStep(0);
+      setMode(which);
+      try {
+        const res = await hs.envPrepare({ lite: which === "lite" });
+        if (res.ok) {
+          setStep(STEPS.length);
+          const st = await hs.envStatus();
+          if (st.ready) {
+            setTimeout(onDone, 500);
+            return;
+          }
+          setFailed("准备完成了，但 Node 版本仍低于 22，请检查网络后重试。");
           return;
         }
-        setFailed("运行环境准备完成，但 Node 版本仍低于 22，请检查网络后重试。");
-      } else {
-        setFailed(res.error || res.out || "运行环境准备失败，请查看下方日志。");
+        setFailed(res.error || res.out || "环境准备没有跑起来，请查看下方日志。");
+      } catch (e) {
+        setFailed("环境准备失败：" + String((e as Error)?.message || e));
+      } finally {
+        setRunning(false);
       }
-    } catch (e) {
-      setFailed("运行环境准备失败：" + String((e as Error)?.message || e));
-    } finally {
-      setRunning(false);
-    }
-  }, [onDone]);
+    },
+    [onDone],
+  );
 
   useEffect(() => {
-    // 进页面就自动开始，不用用户点
-    run();
-  }, [run]);
+    // 进页面就先跑轻量版（只装 Node），重活让用户自己点
+    run("lite");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="env-screen">
@@ -82,13 +107,17 @@ export function EnvSetupPage({ onDone }: Props) {
         <div className="env-head">
           <div className="env-mark">枢</div>
           <div>
-            <h1>正在准备破甲运行环境</h1>
-            <p>首次使用会按你的机器架构下载 Node 运行时，之后复用，不会重复下载。</p>
+            <h1>运行环境准备</h1>
+            <p>
+              不是必须的：只有「豆包」「DSH 完美破甲」「Seep 工作台」需要 Node；
+              其它目标只写配置文件，不需要运行时。弱机器建议只点「轻量」。
+            </p>
           </div>
         </div>
 
         <ol className="env-steps">
           {STEPS.map((s, i) => {
+            const skipped = mode === "lite" && s.key === "pip";
             const done = step > i;
             const active = step === i && running;
             return (
@@ -98,7 +127,9 @@ export function EnvSetupPage({ onDone }: Props) {
                   <b>{s.label}</b>
                   <i>{s.hint}</i>
                 </span>
-                <span className="env-step-state">{done ? "完成" : active ? "进行中" : "等待"}</span>
+                <span className="env-step-state">
+                  {skipped ? "已跳过" : done ? "完成" : active ? "进行中" : "等待"}
+                </span>
               </li>
             );
           })}
@@ -116,18 +147,30 @@ export function EnvSetupPage({ onDone }: Props) {
         ) : null}
 
         <div className="env-actions">
-          <button type="button" className="env-btn primary" disabled={running} onClick={run}>
-            {running ? "正在准备…" : failed ? "重试" : "重新准备"}
+          <button
+            type="button"
+            className="env-btn primary"
+            disabled={running}
+            onClick={() => run("lite")}
+          >
+            {running && mode === "lite" ? "正在准备…" : "只装 Node（轻量）"}
           </button>
-          {failed ? (
-            <button type="button" className="env-btn ghost" onClick={onDone}>
-              先跳过，稍后再说
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="env-btn ghost"
+            disabled={running}
+            onClick={() => run("full")}
+          >
+            完整准备（含 pip 依赖）
+          </button>
+          <button type="button" className="env-btn ghost" disabled={running} onClick={onDone}>
+            跳过，先不用
+          </button>
         </div>
 
         <p className="env-foot">
           {APP_NAME} · 运行环境位于 %LOCALAPPDATA%\XingshuArmor\runtime，不修改系统 PATH。
+          完整准备会装 frida-tools 等较大依赖，弱机器可能卡顿，建议一次只做轻量。
         </p>
       </div>
     </div>
