@@ -34,6 +34,8 @@ try {
 }
 const UNINSTALL_TIMEOUT = 120000;
 const INSTALL_TIMEOUT = 600000;
+// DSH 完美破甲要走 pnpm 装依赖，慢网下 10 分钟不够
+const INSTALL_TIMEOUT_SLOW = 1800000;
 /** Seep 工作台首次部署要装 Python 依赖 + 解压离线包，给足 30 分钟。 */
 const SEEP_TIMEOUT = 1800000;
 
@@ -610,7 +612,8 @@ function registerIpc() {
       send("tool:log", { label: "安装中止", text: text + "\n" });
       return { ok: false, code: -1, timedOut: false, out: text, error: text, installed };
     }
-    const res = await runPowerShell(installArgs(targetId, prompt.path), `安装 ${targetId}`, INSTALL_TIMEOUT);
+    const tmo = targetId === "dsh-perfect" ? INSTALL_TIMEOUT_SLOW : INSTALL_TIMEOUT;
+    const res = await runPowerShell(installArgs(targetId, prompt.path), `安装 ${targetId}`, tmo);
     if (res.ok) {
       const st = loadState();
       st.installed[targetId] = prompt.name;
@@ -857,9 +860,18 @@ function registerIpc() {
 // ---------- 窗口 ----------
 
 function createWindow() {
+  // 小屏兼容：1366×768 这类机器上 780 高会超出工作区，底栏被切掉
+  let wa = { width: 1180, height: 780 };
+  try {
+    const { screen } = require("electron");
+    wa = screen.getPrimaryDisplay().workAreaSize;
+  } catch { /* 拿不到就按默认 */ }
+  const w = Math.min(1180, Math.max(940, wa.width - 40));
+  const h = Math.min(780, Math.max(620, wa.height - 60));
+
   win = new BrowserWindow({
-    width: 1180,
-    height: 780,
+    width: w,
+    height: h,
     minWidth: 940,
     minHeight: 620,
     show: false,
@@ -1166,6 +1178,34 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on("second-instance", () => {
     showWindow();
+  });
+
+  // 单实例：第二次启动只把已有窗口拉到前面，避免两个进程同时改同一批文件
+  const gotLock = app.requestSingleInstanceLock();
+  if (!gotLock) {
+    app.quit();
+    return;
+  }
+  app.on("second-instance", () => {
+    if (win && !win.isDestroyed()) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    }
+  });
+
+  // 兜底：任何未捕获异常都不许让主进程悄悄挂掉
+  process.on("uncaughtException", (e) => {
+    try {
+      console.error("[uncaughtException]", e && e.stack ? e.stack : e);
+      send("tool:log", { label: childLabel || "运行", text: "\n[主进程异常] " + String((e && e.message) || e) + "\n" });
+    } catch { /* 兜底里再抛就没救了 */ }
+  });
+  process.on("unhandledRejection", (e) => {
+    try {
+      console.error("[unhandledRejection]", e && e.stack ? e.stack : e);
+      send("tool:log", { label: childLabel || "运行", text: "\n[未处理的异步错误] " + String((e && e.message) || e) + "\n" });
+    } catch { /* 同上 */ }
   });
 
   app.whenReady().then(() => {
