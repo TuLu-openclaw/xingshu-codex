@@ -59,6 +59,7 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
+          REQUIRE_RCEDIT: "1"
         run: python scripts/package.py
 
       - name: 校验产物
