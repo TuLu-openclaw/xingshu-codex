@@ -138,7 +138,7 @@ function Start-Injector([string]$PromptFile) {
     if (Test-Path -LiteralPath $injectorLog) { Remove-Item -LiteralPath $injectorLog -Force -ErrorAction SilentlyContinue }
     # 用 WMI 直接拉起 node（日志由脚本自己写），这样 PID 就是 node 本尊，
     # 而且完全脱离当前控制台，父进程不会被这个常驻子进程挂住。
-    $cmdLine = "`"$node`" `"$injectorJs`" --prompt `"$PromptFile`" --port $Port --log `"$injectorLog`""
+    $cmdLine = "`"$node`" `"$injectorJs`" --prompt `"$PromptFile`" --port $Port --log `"$injectorLog`" --exe `"$exe`""
     $created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
         -Arguments @{ CommandLine = $cmdLine } -ErrorAction SilentlyContinue
     if (-not $created -or -not $created.ProcessId) {

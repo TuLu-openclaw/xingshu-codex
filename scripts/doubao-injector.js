@@ -23,6 +23,7 @@ const arg = (name, def) => {
 const PORT = Number(arg('--port', '9222'));
 const PROMPT_FILE = arg('--prompt', '');
 const LOG_FILE = arg('--log', '');
+const DOUBAO_EXE = arg('--exe', '');
 const ONCE = argv.includes('--once');
 const SLEEP_MS = Number(arg('--interval', '2500'));
 
@@ -156,6 +157,27 @@ async function injectAll(promptText, rewritePairs) {
   return 'injected=' + done;
 }
 
+// 端口不通时的兜底：豆包没在跑 → 用调试参数拉起来（不杀用户正在用的进程）
+const { spawn, execFileSync } = require('node:child_process');
+let lastAutoLaunch = 0;
+function ensureDoubao(promptText, rewritePairs) {
+  if (!DOUBAO_EXE) return 'no-port';
+  let running = false;
+  try {
+    const out = execFileSync('tasklist', ['/FI', 'IMAGENAME eq Doubao.exe', '/NH'], { encoding: 'utf8' });
+    running = /Doubao\.exe/i.test(out);
+  } catch { /* tasklist 不可用就当没运行 */ }
+  if (running) return 'no-port(已运行但没开调试端口，需点一次安装)';
+  if (Date.now() - lastAutoLaunch < 60000) return 'no-port(刚拉起过，等待启动)';
+  lastAutoLaunch = Date.now();
+  try {
+    spawn(DOUBAO_EXE, [`--remote-debugging-port=${PORT}`], { detached: true, stdio: 'ignore' }).unref();
+    return 'no-port(已用调试端口拉起豆包)';
+  } catch (e) {
+    return 'no-port(拉起失败: ' + e.message + ')';
+  }
+}
+
 (async () => {
   let promptText = '';
   if (PROMPT_FILE) {
@@ -164,9 +186,10 @@ async function injectAll(promptText, rewritePairs) {
   }
   if (!promptText) { console.error('缺少 --prompt <文件>'); process.exit(1); }
 
-  logLine(`start port=${PORT} prompt=${promptText.length}字 轮询=${SLEEP_MS}ms`);
+  logLine(`start port=${PORT} prompt=${promptText.length}字 轮询=${SLEEP_MS}ms exe=${DOUBAO_EXE || '-'}`);
   for (;;) {
-    const r = await injectAll(promptText, REWRITE);
+    let r = await injectAll(promptText, REWRITE);
+    if (r === 'no-port') r = ensureDoubao(promptText, REWRITE);
     logLine(r);
     if (ONCE) process.exit(0);
     await new Promise((s) => setTimeout(s, SLEEP_MS));
