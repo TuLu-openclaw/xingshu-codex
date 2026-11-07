@@ -13,7 +13,7 @@
   grid-template-columns: 1fr 560px;
   height: 100%;
   min-height: 0;
-  font-family: "Manrope", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "HarmonyOS Sans SC", "Manrope", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   color: var(--ax-text);
   background: var(--ax-bg);
 }
