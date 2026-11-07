@@ -394,6 +394,15 @@ function runPowerShell(args, label, timeoutMs) {
       send("tool:log", { label, text: delta });
     };
 
+    // 先把要跑的命令打到日志里：出问题时至少能看到"到底启动了什么"
+    try {
+      send("tool:log", {
+        label,
+        text: "[启动] powershell -NoProfile -ExecutionPolicy Bypass " + args.join(" ") + "\n" +
+              "[目录] " + toolDir() + "\n",
+      });
+    } catch { /* 界面没订阅也不影响 */ }
+
     const ps = spawn(
       "powershell.exe",
       ["-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args],
@@ -419,7 +428,16 @@ function runPowerShell(args, label, timeoutMs) {
     ps.on("close", (code) => {
       if (childTimer) clearTimeout(childTimer);
       child = null;
-      resolve({ ok: !timedOut && code === 0, code: code == null ? -1 : code, out, timedOut });
+      const ok = !timedOut && code === 0;
+      // 一行输出都没有又失败：把命令和退出码塞进 out，界面才有东西可看
+      if (!ok && !out.trim()) {
+        out =
+          "[失败] powershell 退出码 " + (code == null ? -1 : code) + "，没有任何输出。\n" +
+          "[命令] powershell -NoProfile -ExecutionPolicy Bypass " + args.join(" ") + "\n" +
+          "[目录] " + toolDir() + "\n" +
+          "常见原因：安全软件拦截、组策略禁止脚本、或安装包不完整。\n";
+      }
+      resolve({ ok: ok && code === 0, code: code == null ? -1 : code, out, timedOut });
     });
   });
 }
@@ -741,9 +759,18 @@ function registerIpc() {
 
   // ---------- 破甲运行环境（激活后自动准备 Node / npm / pnpm） ----------
   ipcMain.handle("env:status", () => envStatus());
-  ipcMain.handle("env:prepare", () =>
-    runPowerShell(["-File", p("scripts", "prepare-env.ps1")], "准备破甲运行环境", 1800000),
-  );
+  ipcMain.handle("env:prepare", () => {
+    const script = p("scripts", "prepare-env.ps1");
+    if (!fs.existsSync(script)) {
+      const msg =
+        "[错误] 找不到环境准备脚本：\n" +
+        script +
+        "\n安装包不完整或被安全软件删除，请重新覆盖安装。\n";
+      send("tool:log", { label: "准备破甲运行环境", text: msg });
+      return { ok: false, code: -2, out: msg, error: msg };
+    }
+    return runPowerShell(["-File", script], "准备破甲运行环境", 1800000);
+  });
 
   // ---------- 卡密授权 ----------
   ipcMain.handle("license:state", () => licenseMod().state());
