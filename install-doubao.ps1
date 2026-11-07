@@ -460,10 +460,13 @@ if ($ok) {
     if ($injectOk) {
         Write-Host "  生效方式：豆包对话页已装钩子，直接发消息即可（规范会前置进你的每条消息）" -ForegroundColor Green
         Write-Host "  敏感词会被自动改写成技术说法，绕过平台输入过滤；改写表见 scripts\doubao-injector.js"
+        Write-Host "  还原命令：.\install-doubao.ps1 -Uninstall"
     } else {
+        # 记忆写进去了、但守护没起来 = 这条链路实际不生效，不能报成功
         Write-Host "  [!] 注入守护未起来：这条链路需要 Node。先在应用里点「环境准备」，再重装一次。" -ForegroundColor Yellow
+        Write-Log "Install incomplete: injector not running"
+        exit 3
     }
-    Write-Host "  还原命令：.\install-doubao.ps1 -Uninstall"
 } else {
     Write-Host "`n[失败] 写入未生效：接口拒绝或内容被截断" -ForegroundColor Red
 Write-Host "      若接口返回 code=671010000 params invalid → 提示词超过豆包 12000 字符上限" -ForegroundColor Yellow
