@@ -95,11 +95,6 @@ export function EnvSetupPage({ onDone }: Props) {
     [onDone],
   );
 
-  useEffect(() => {
-    // 进页面就先跑轻量版（只装 Node），重活让用户自己点
-    run("lite");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className="env-screen">
