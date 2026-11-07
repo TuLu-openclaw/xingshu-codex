@@ -771,7 +771,9 @@ function registerIpc() {
   ipcMain.handle("env:status", () => envStatus());
   // 环境准备：先按 -File 跑（输出最干净），零输出失败再换 -EncodedCommand / -Command，
   // 还不行就把 PowerShell 版本与执行策略捞出来，界面里直接能看到。
-  ipcMain.handle("env:prepare", async () => {
+  ipcMain.handle("env:prepare", async (_e, opts) => {
+    // lite=true 时只准备 Node（跳过 Python / pip 依赖），弱机器上不跑重活
+    const lite = !!(opts && opts.lite);
     const script = p("scripts", "prepare-env.ps1");
     const label = "准备破甲运行环境";
     if (!fs.existsSync(script)) {
@@ -785,7 +787,7 @@ function registerIpc() {
     const q = `'${script.replace(/'/g, "''")}'`;
     const toB64 = (s) => Buffer.from(s, "utf16le").toString("base64");
     const attempts = [
-      ["-File", script],
+      ["-File", script].concat(lite ? ["-SkipPip"] : []),
       ["-EncodedCommand", toB64(`& ${q}`)],
       ["-Command", `Set-ExecutionPolicy -Scope Process Bypass -Force; & ${q}`],
     ];
