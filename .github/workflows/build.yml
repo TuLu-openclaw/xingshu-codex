@@ -37,6 +37,20 @@ jobs:
       - name: 安装依赖
         run: npm install --no-audit --no-fund
 
+      - name: 准备 HarmonyOS Sans 字体（华为免费商用）
+        shell: pwsh
+        run: |
+          $dir = "src/assets/fonts"
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          $base = "https://raw.githubusercontent.com/ajacocks/harmonyos-sans-font/main"
+          foreach ($n in @("Regular", "Medium", "Bold")) {
+            $out = Join-Path $dir ("HarmonyOS_Sans_SC_" + $n + ".ttf")
+            if (-not (Test-Path $out)) {
+              curl.exe -L --fail --retry 3 --retry-all-errors -o $out ($base + "/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_" + $n + ".ttf")
+            }
+            if (-not (Test-Path $out)) { throw ("字体下载失败：" + $out) }
+            Write-Host ("font " + $n + ": " + (Get-Item $out).Length + " bytes")
+          }
       - name: 构建渲染层
         run: npm run build
 
