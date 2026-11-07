@@ -53,3 +53,6 @@ license.config.json
 
 # 打包缓存（rcedit 等）
 .cache/
+
+# HarmonyOS Sans 字体体积大，CI 构建时自动下载（见 .github/workflows/build.yml）
+src/assets/fonts/*.ttf
