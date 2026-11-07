@@ -277,6 +277,7 @@ export function App() {
       key={id}
       type="button"
       className={cx("settings-nav-item", view === id && "active")}
+      aria-current={view === id ? "page" : undefined}
       onClick={() => setView(id)}
     >
       <span className="settings-nav-icon">
@@ -323,7 +324,7 @@ export function App() {
   return (
     <div className="app-shell settings-mode">
       <div className="settings-shell-full">
-        <nav className="settings-nav">
+        <nav className="settings-nav" aria-label="主导航">
           <div className="settings-nav-top">
             <div className="app-brand">
               <img className="app-brand-mark" src={brandMark} alt="" aria-hidden="true" draggable={false} />
@@ -387,7 +388,7 @@ export function App() {
           </div>
         </nav>
 
-        <div className="settings-content">
+        <div className="settings-content" role="main">
           {/* 顶部条：面包屑 + 状态徽标（与设计稿一致） */}
           <header className="settings-topbar">
             <div className="settings-crumb">
@@ -478,6 +479,8 @@ export function App() {
       {toast && (
         <div
           className={cx("toast", toastLevel === "error" ? "toast-error-solid" : "toast-success-solid")}
+          role="status"
+          aria-live="polite"
           onClick={() => setToast(null)}
         >
           {toastLevel === "error" ? <IconCircleAlert size={16} /> : <IconCheck size={16} />}
