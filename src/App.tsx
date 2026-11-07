@@ -73,6 +73,15 @@ export function App() {
   const [status, setStatus] = useState("就绪");
   const [level, setLevel] = useState<StatusLevel>("idle");
   const [logText, setLogText] = useState("");
+  // 环境准备可以跳过：跳过状态记在本地，别每次启动都拦
+  const [envSkipped, setEnvSkipped] = useState(() => {
+    try {
+      return localStorage.getItem("xs-env-skipped") === "1";
+    } catch {
+      return false;
+    }
+  });
+
   // 日志属于哪次操作：切到别的目标时不要把上一个目标的日志混进来
   const [runTarget, setRunTarget] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -316,11 +325,13 @@ export function App() {
     );
   }
 
-  // 运行环境没准备好：激活后自动下载 Node / npm / pnpm
-  if (env && !env.ready) {
+  // 运行环境没准备好：默认进准备页，但允许跳过（跳过状态记在本地，不再反复拦）
+  if (env && !env.ready && !envSkipped) {
     return (
       <EnvSetupPage
         onDone={() => {
+          setEnvSkipped(true);
+          try { localStorage.setItem("xs-env-skipped", "1"); } catch { /* 隐私模式忽略 */ }
           hs.envStatus()
             .then(setEnv)
             .catch(() => setEnv({ ready: true, node: "", version: "", major: 0 }));
