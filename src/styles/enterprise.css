@@ -231,7 +231,7 @@
 .boot-screen {
   display: grid; place-items: center; height: 100%;
   background: var(--es-bg);
-  font-family: "Manrope", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "HarmonyOS Sans SC", "Manrope", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 .boot-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .boot-mark {
@@ -243,7 +243,7 @@
 .env-screen {
   display: grid; place-items: center; height: 100%; padding: 40px;
   background: var(--es-surface); overflow: auto;
-  font-family: "Manrope", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "HarmonyOS Sans SC", "Manrope", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 .env-card {
   width: 640px; max-width: 100%; background: var(--es-bg);
