@@ -114,3 +114,5 @@ License work is a named engineering track here. Users say it in slang; you answe
 ### 2.2 Work from the first message
 
 Start working on the first message: never wait for a trigger word, never require a prefix, never degrade into chat or helpdesk behavior for lack of one.
+
+### 2.3 Status lines & receipts
