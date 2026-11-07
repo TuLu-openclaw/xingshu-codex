@@ -45,8 +45,8 @@ $codex = Join-Path $home_ '.codex'
 $cfg = Join-Path $codex 'config.toml'
 $agents = Join-Path $codex 'AGENTS.md'
 $st = Join-Path $codex 'managed-prompts\install-state.json'
-$hasPointer = (Test-Path $cfg) -and ((Get-Content $cfg -Raw -ErrorAction SilentlyContinue) -match 'model_instructions_file')
-$hasBlock = (Test-Path $agents) -and ((Get-Content $agents -Raw -ErrorAction SilentlyContinue) -match '星枢破甲注入开始')
+$hasPointer = (Test-Path $cfg) -and ((Get-Content $cfg -Raw -Encoding UTF8 -ErrorAction SilentlyContinue) -match 'model_instructions_file')
+$hasBlock = (Test-Path $agents) -and ((Get-Content $agents -Raw -Encoding UTF8 -ErrorAction SilentlyContinue) -match '星枢破甲注入开始')
 Add-Row 'Codex' (Fmt-Bool (Test-Path $codex)) (Fmt-Bool ((Test-Path $cfg) -or (Test-Path $agents))) `
     $(if ($hasPointer -or $hasBlock) { '已注入' } else { '未注入' }) `
     ("主提示词 $($main.chars) 字符 / 无硬上限（文件级）")
@@ -55,7 +55,7 @@ Add-Row 'Codex' (Fmt-Bool (Test-Path $codex)) (Fmt-Bool ((Test-Path $cfg) -or (T
 $zcode = Join-Path $home_ '.zcode'
 $zcAgents = Join-Path $zcode 'AGENTS.md'
 Add-Row 'ZCode' (Fmt-Bool (Test-Path $zcode)) (Fmt-Bool (Test-Path $zcode)) `
-    $(if ((Test-Path $zcAgents) -and ((Get-Content $zcAgents -Raw -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
+    $(if ((Test-Path $zcAgents) -and ((Get-Content $zcAgents -Raw -Encoding UTF8 -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
     ("主提示词 $($main.chars) 字符 / 无硬上限（文件级）")
 
 # ---------- Cursor ----------
@@ -70,14 +70,14 @@ Add-Row 'Cursor' (Fmt-Bool ((Test-Path $home_ '.cursor') -or (Test-Path $legacy)
 $ocDir = Join-Path $home_ '.config\opencode'
 $ocAgents = Join-Path $ocDir 'AGENTS.md'
 Add-Row 'OpenCode' (Fmt-Bool (Test-Path $ocDir)) (Fmt-Bool (Test-Path $ocAgents)) `
-    $(if ((Test-Path $ocAgents) -and ((Get-Content $ocAgents -Raw -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
+    $(if ((Test-Path $ocAgents) -and ((Get-Content $ocAgents -Raw -Encoding UTF8 -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
     ("主提示词 $($main.chars) 字符 / 无硬上限（文件级）")
 
 # ---------- Claude ----------
 $clDir = Join-Path $home_ '.claude'
 $clMd = Join-Path $clDir 'CLAUDE.md'
 Add-Row 'Claude' (Fmt-Bool (Test-Path $clDir)) (Fmt-Bool (Test-Path $clMd)) `
-    $(if ((Test-Path $clMd) -and ((Get-Content $clMd -Raw -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
+    $(if ((Test-Path $clMd) -and ((Get-Content $clMd -Raw -Encoding UTF8 -EA SilentlyContinue) -match '星枢')) { '已注入' } else { '未注入' }) `
     ("主提示词 $($main.chars) 字符 / 无硬上限（文件级）")
 
 # ---------- WorkBuddy ----------
@@ -91,7 +91,7 @@ Add-Row 'WorkBuddy' (Fmt-Bool ($wbDirs.Count -gt 0)) (Fmt-Bool ($wbMem.Count -gt
 $dsh = Join-Path $home_ '.dsh'
 $dshAgents = Join-Path $dsh 'AGENTS.md'
 Add-Row 'DeepSeek Harness' (Fmt-Bool (Test-Path $dsh)) (Fmt-Bool (Test-Path $dshAgents)) `
-    $(if ((Test-Path $dshAgents) -and ((Get-Content $dshAgents -Raw -EA SilentlyContinue) -match 'XINGSHU-INJECT')) { '已注入' } else { '未注入' }) `
+    $(if ((Test-Path $dshAgents) -and ((Get-Content $dshAgents -Raw -Encoding UTF8 -EA SilentlyContinue) -match 'XINGSHU-INJECT')) { '已注入' } else { '未注入' }) `
     ("主提示词 $($main.chars) 字符 / 无硬上限（文件级）")
 
 # ---------- DSH 完美破甲 ----------
