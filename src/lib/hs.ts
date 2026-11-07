@@ -92,7 +92,7 @@ export type HsApi = {
   licenseDeactivate(): Promise<LicenseState>;
   licenseDevice(): Promise<string>;
   envStatus(): Promise<EnvStatus>;
-  envPrepare(): Promise<InstallResult>;
+  envPrepare(opts?: { lite?: boolean }): Promise<InstallResult>;
   onLog(cb: (p: LogPayload) => void): () => void;
   onStatus(cb: (p: StatusPayload) => void): () => void;
   onNotify(cb: (p: NotifyPayload) => void): () => void;
