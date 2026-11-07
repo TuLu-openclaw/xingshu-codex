@@ -40,6 +40,8 @@ COPY_FILES = [
     "install-opencode.ps1", "install-dsh-perfect.ps1",
 ]
 COPY_DIRS = ["seep-kit", "memory", "kits"]
+# 需要随包的运行时脚本（豆包注入守护等）
+COPY_SCRIPTS = ["doubao-injector.js"]
 
 
 def log(msg):
@@ -86,10 +88,12 @@ def build_stage():
             log("  [缺失] " + f)
 
     os.makedirs(os.path.join(res, "scripts"), exist_ok=True)
-    for f in ("clear-injected-prompts.ps1", "prepare-env.ps1"):
+    for f in ("clear-injected-prompts.ps1", "prepare-env.ps1", *COPY_SCRIPTS):
         src = os.path.join(ROOT, "scripts", f)
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(res, "scripts", f))
+        else:
+            log("  [缺失] scripts/" + f)
 
     icon = os.path.join(ROOT, "build", "icon.png")
     if os.path.exists(icon):
