@@ -10,7 +10,7 @@ export function TutorialPage() {
           <div>
             <h2 className="settings-card-heading">说明</h2>
             <p className="settings-card-description">
-              填提示词 → 点安装 → 重启应用，直接说事就能用（不需要前缀）。发一句「星枢」可自检提示词有没有加载。
+              填提示词 → 点安装 → 重启应用，直接说事就能用。建议新会话先发一次「星枢」——非必需，但能让豆包/WorkBuddy 这类记忆注入的载体更稳地进入执行状态。
             </p>
           </div>
           <span className="badge badge-neutral">3 步上手</span>
