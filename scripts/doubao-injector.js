@@ -25,6 +25,7 @@ const PROMPT_FILE = arg('--prompt', '');
 const LOG_FILE = arg('--log', '');
 const DOUBAO_EXE = arg('--exe', '');
 const ONCE = argv.includes('--once');
+const DEEP = argv.includes('--deep');
 const SLEEP_MS = Number(arg('--interval', '2500'));
 
 // 有 --log 就自己写文件（这样可以直接用 WMI 起进程，不需要 cmd 重定向，PID 才是 node 本尊）
@@ -122,13 +123,14 @@ function connect(wsUrl) {
   });
 }
 
-function buildHookScript(promptText, rewritePairs) {
+function buildHookScript(promptText, rewritePairs, deepFlag) {
   const b64 = Buffer.from(promptText, 'utf8').toString('base64');
   const pairs = JSON.stringify(rewritePairs);
   return `(() => {
   const P = new TextDecoder().decode(Uint8Array.from(atob("${b64}"), (c) => c.charCodeAt(0)));
   const RW = ${pairs};
   window.__xs_prompt__ = P;
+  window.__xs_deep__ = ${deepFlag ? "true" : "false"};
   window.__xs_rewrite__ = RW;
   const rewriteUserText = (s) => {
     let out = s;
@@ -173,6 +175,10 @@ function buildHookScript(promptText, rewritePairs) {
               window.__xs_retry_count__ = 0;
             }
           } catch (e) {}
+          // 试：开着深度思考往往更愿意按规范给实现（可用 --deep 开关）
+          if (window.__xs_deep__) {
+            try { j.option = Object.assign({}, j.option || {}, { need_deep_think: 1 }); } catch (e) {}
+          }
           init = Object.assign({}, init, { body: JSON.stringify(j) });
         }
       } catch (e) { /* 钩子异常就按原样发 */ }
@@ -194,7 +200,7 @@ async function injectAll(promptText, rewritePairs) {
   for (const t of pages) {
     try {
       const c = await connect(t.webSocketDebuggerUrl);
-      const r = await c.evaluate(buildHookScript(promptText, rewritePairs));
+      const r = await c.evaluate(buildHookScript(promptText, rewritePairs, DEEP));
       c.close();
       if (String(r).startsWith('ok')) done++;
       else lastErr = r === undefined ? 'undefined(可能抛异常)' : String(r).slice(0, 120);
