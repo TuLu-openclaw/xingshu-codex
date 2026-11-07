@@ -1,24 +1,19 @@
-/* 星枢 · 激活页（企业官方风 v2：白底 + 近黑主色，与主界面同一套语言） */
+/* 星枢 · 激活页（华为设计系统 v3：白底 + 近黑直角 + 大字号左栏 / 浅灰右栏表单） */
 
 .activation-shell {
   --ax-bg: #ffffff;
-  --ax-canvas: #f7f7f8;
-  --ax-line: #e6e6e6;
-  --ax-line-strong: #d4d4d4;
-  --ax-text: #1c1c1e;
-  --ax-text-2: #3f3f46;
-  --ax-muted: #6b6b72;
-  --ax-muted-2: #8a8a92;
-  --ax-ink: #1c1c1e;
-  --ax-ink-hover: #333336;
+  --ax-surface: #f1f3f5;
+  --ax-line: #dedede;
+  --ax-text: #000000;
+  --ax-muted: #666666;
   --ax-danger: #c02b2b;
-  --ax-success: #0f7a4a;
+  --ax-success: #12703f;
 
   display: grid;
-  grid-template-columns: 46% 1fr;
+  grid-template-columns: 1fr 560px;
   height: 100%;
   min-height: 0;
-  font-family: "Inter", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "Manrope", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   color: var(--ax-text);
   background: var(--ax-bg);
 }
@@ -27,124 +22,129 @@
 .activation-shell .ax-brand {
   display: flex;
   flex-direction: column;
-  padding: 44px 48px 34px;
+  padding: 60px 68px 48px;
   background: var(--ax-bg);
   border-right: 1px solid var(--ax-line);
 }
 .activation-shell .ax-wordmark { display: flex; align-items: center; gap: 12px; }
 .activation-shell .ax-mark {
-  width: 34px; height: 34px; border-radius: 9px;
+  width: 32px; height: 32px; border-radius: 4px;
   display: grid; place-items: center; color: #fff;
-  font-size: 16px; font-weight: 700; background: var(--ax-ink);
+  font-size: 15px; font-weight: 700; background: var(--ax-text);
 }
 .activation-shell .ax-wordmark-txt b {
-  display: block; font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--ax-text);
+  display: block; font-size: 16px; font-weight: 700; letter-spacing: -.01em; color: var(--ax-text);
 }
 .activation-shell .ax-wordmark-txt span {
-  display: block; margin-top: 2px; font-size: 11px; color: var(--ax-muted-2); letter-spacing: .1em;
+  display: block; margin-top: 2px; font-size: 12px; color: var(--ax-muted); letter-spacing: .1em;
 }
 
 .activation-shell .ax-brand-body { margin-top: auto; }
-.activation-shell .ax-product { font-size: 12px; letter-spacing: .08em; color: var(--ax-muted-2); }
+.activation-shell .ax-product { font-size: 12px; letter-spacing: .1em; color: var(--ax-muted); }
 .activation-shell .ax-brand h1 {
-  margin: 12px 0 14px;
-  font-size: 44px; line-height: 1.12; font-weight: 700; letter-spacing: -.04em; color: var(--ax-text);
+  margin: 16px 0 18px;
+  font-size: 46px; line-height: 1.08; font-weight: 700; letter-spacing: -.035em; color: var(--ax-text);
 }
 .activation-shell .ax-lead {
-  margin: 0; max-width: 22em; font-size: 14px; line-height: 1.75; color: var(--ax-muted);
+  margin: 0; max-width: 24em; font-size: 14px; line-height: 1.8; color: var(--ax-muted);
 }
 .activation-shell .ax-facts {
-  margin: 30px 0 0; padding: 22px 0 0; list-style: none; display: grid; gap: 13px;
+  margin: 40px 0 0; padding: 28px 0 0; list-style: none; display: grid; gap: 16px;
   border-top: 1px solid var(--ax-line);
 }
 .activation-shell .ax-facts li {
-  display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.6; color: var(--ax-text-2);
+  display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.7; color: var(--ax-text);
 }
-.activation-shell .ax-facts svg { flex: 0 0 auto; margin-top: 2px; color: var(--ax-ink); }
+.activation-shell .ax-facts svg { flex: 0 0 auto; margin-top: 3px; color: var(--ax-text); }
 .activation-shell .ax-brand-foot {
-  margin-top: 28px; display: flex; justify-content: space-between; font-size: 12px; color: var(--ax-muted-2);
+  margin-top: 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--ax-muted);
 }
 
-/* ---------- 右：表单 ---------- */
+/* ---------- 右：浅灰底 + 白卡片表单 ---------- */
 .activation-shell .ax-panel {
   display: flex; align-items: center; justify-content: center;
-  padding: 40px; background: var(--ax-canvas); overflow: auto;
+  padding: 48px; background: var(--ax-surface); overflow: auto;
 }
 .activation-shell .ax-form {
-  width: 428px; max-width: 100%;
-  background: #fff; border: 1px solid var(--ax-line); border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.04);
-  padding: 28px 28px 24px;
+  width: 100%; max-width: 420px;
+  background: var(--ax-bg); border: 1px solid var(--ax-line); border-radius: 8px;
+  padding: 32px 32px 28px;
 }
 .activation-shell .ax-eyebrow {
-  font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--ax-muted-2);
+  font-size: 12px; font-weight: 500; letter-spacing: .12em; color: var(--ax-muted);
 }
 .activation-shell .ax-form h2 {
-  margin: 10px 0 8px; font-size: 24px; line-height: 1.3; font-weight: 700; letter-spacing: -.02em;
+  margin: 12px 0 10px; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -.02em;
 }
-.activation-shell .ax-sub { margin: 0; font-size: 13px; line-height: 1.7; color: var(--ax-muted); }
+.activation-shell .ax-sub { margin: 0; font-size: 13px; line-height: 1.75; color: var(--ax-muted); }
 
-.activation-shell .ax-field { display: block; margin-top: 20px; }
+.activation-shell .ax-field { display: block; margin-top: 26px; }
 .activation-shell .ax-label {
-  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
 }
-.activation-shell .ax-label > span:first-child { font-size: 12.5px; font-weight: 600; color: var(--ax-text-2); }
+.activation-shell .ax-label > span:first-child { font-size: 13px; font-weight: 600; color: var(--ax-text); }
 .activation-shell .ax-linkbtn {
-  all: unset; cursor: pointer; display: inline-block; min-height: 24px; line-height: 16px;
-  padding: 4px 6px; margin: -4px -6px; border-radius: 5px; font-size: 12px; color: var(--ax-text);
+  all: unset; cursor: pointer; display: inline-block; min-height: 26px; line-height: 26px;
+  padding: 0 2px; border-radius: 2px; font-size: 12px; color: var(--ax-text);
   text-decoration: underline; text-underline-offset: 3px;
 }
-.activation-shell .ax-linkbtn:hover { background: #f2f2f3; }
+.activation-shell .ax-linkbtn:hover { background: var(--ax-surface); }
 
 .activation-shell .ax-device {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  height: 42px; padding: 0 12px;
-  background: var(--ax-canvas); border: 1px solid var(--ax-line); border-radius: 8px;
+  height: 44px; padding: 0 14px;
+  background: var(--ax-surface); border: 1px solid var(--ax-line); border-radius: 4px;
 }
 .activation-shell .ax-device code {
   font-family: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
-  font-size: 13px; color: var(--ax-text-2); letter-spacing: .04em;
+  font-size: 13px; color: var(--ax-text); letter-spacing: .06em;
 }
-.activation-shell .ax-device-note { font-size: 12px; color: var(--ax-muted-2); }
+.activation-shell .ax-device-note { font-size: 12px; color: var(--ax-muted); }
 
 .activation-shell .ax-input {
   width: 100%; height: 46px; padding: 0 14px;
   font-family: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
-  font-size: 14px; letter-spacing: .1em; color: var(--ax-text);
-  background: #fff; border: 1px solid var(--ax-line-strong); border-radius: 8px; outline: none;
-  transition: border-color .15s, box-shadow .15s;
+  font-size: 14px; letter-spacing: .12em; color: var(--ax-text);
+  background: var(--ax-bg); border: 1px solid var(--ax-line); border-radius: 4px; outline: none;
+  transition: border-color 200ms cubic-bezier(.2,.8,.2,1), box-shadow 200ms cubic-bezier(.2,.8,.2,1);
 }
-.activation-shell .ax-input::placeholder { color: var(--ax-muted-2); }
-.activation-shell .ax-input:focus { border-color: var(--ax-ink); box-shadow: 0 0 0 3px rgba(28,28,30,.08); }
-.activation-shell .ax-input.is-error { border-color: var(--ax-danger); box-shadow: 0 0 0 3px rgba(192,43,43,.1); }
+.activation-shell .ax-input::placeholder { color: #9a9a9a; letter-spacing: normal; }
+.activation-shell .ax-input:focus { border-color: var(--ax-text); box-shadow: 0 0 0 3px rgba(0, 0, 0, .08); }
+.activation-shell .ax-input.is-error { border-color: var(--ax-danger); box-shadow: 0 0 0 3px rgba(192, 43, 43, .1); }
 
 .activation-shell .ax-submit {
-  width: 100%; height: 46px; margin-top: 18px; border: 0; border-radius: 999px;
-  font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: .01em;
-  color: #fff; background: var(--ax-ink); cursor: pointer;
-  transition: background .15s, transform .15s;
+  width: 100%; height: 48px; margin-top: 22px; border: 0; border-radius: 4px;
+  font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: .02em;
+  color: #fff; background: var(--ax-text); cursor: pointer;
+  transition: background 200ms cubic-bezier(.2,.8,.2,1), transform 200ms cubic-bezier(.2,.8,.2,1);
 }
-.activation-shell .ax-submit:hover:not(:disabled) { background: var(--ax-ink-hover); }
+.activation-shell .ax-submit:hover:not(:disabled) { background: #1c1c1e; }
 .activation-shell .ax-submit:active:not(:disabled) { transform: translateY(1px); }
-.activation-shell .ax-submit:disabled { background: #a8a8ad; cursor: not-allowed; }
+.activation-shell .ax-submit:disabled { background: #a8a8a8; cursor: not-allowed; }
 
-.activation-shell .ax-hint { margin: 12px 0 0; font-size: 12px; line-height: 1.65; color: var(--ax-muted); }
+.activation-shell .ax-hint { margin: 14px 0 0; font-size: 12px; line-height: 1.7; color: var(--ax-muted); }
 
 .activation-shell .ax-status {
   display: flex; gap: 8px; align-items: flex-start;
-  margin-top: 14px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;
+  margin-top: 14px; padding: 12px 14px; border-radius: 4px; font-size: 13px; line-height: 1.65;
 }
-.activation-shell .ax-status.err { background: #fdecec; color: var(--ax-danger); border: 1px solid #f3c9c9; }
-.activation-shell .ax-status.ok { background: #e8f7ef; color: var(--ax-success); border: 1px solid #bfe3cd; }
+.activation-shell .ax-status.err { background: #fdecec; color: var(--ax-danger); border: 1px solid #f0c9c9; }
+.activation-shell .ax-status.ok { background: #eaf6ef; color: var(--ax-success); border: 1px solid #bfe3cd; }
 
 .activation-shell .ax-notice {
-  margin-top: 20px; padding: 14px 16px;
-  background: var(--ax-canvas); border: 1px solid var(--ax-line); border-radius: 10px;
+  margin-top: 26px; padding: 16px 18px;
+  background: var(--ax-surface); border-radius: 4px;
 }
 .activation-shell .ax-notice-head {
-  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--ax-text-2);
+  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--ax-text);
 }
 .activation-shell .ax-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ax-success); }
-.activation-shell .ax-notice p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--ax-muted); overflow-wrap: anywhere; }
+.activation-shell .ax-notice p { margin: 8px 0 0; font-size: 12px; line-height: 1.75; color: var(--ax-muted); overflow-wrap: anywhere; }
 
-.activation-shell .ax-legal { margin-top: 16px; font-size: 11.5px; color: var(--ax-muted-2); line-height: 1.7; }
+.activation-shell .ax-legal { margin-top: 20px; font-size: 12px; color: var(--ax-muted); line-height: 1.7; }
+
+@media (max-width: 900px) {
+  .activation-shell { grid-template-columns: 1fr; }
+  .activation-shell .ax-brand { display: none; }
+  .activation-shell .ax-panel { padding: 28px 20px; }
+}
