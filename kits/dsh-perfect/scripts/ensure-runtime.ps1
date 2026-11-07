@@ -218,18 +218,31 @@ function Move-XingshuRuntimeDirectory {
     $destinationFull = [IO.Path]::GetFullPath($Destination)
     $sourceRoot = [IO.Path]::GetPathRoot($sourceFull)
     $destinationRoot = [IO.Path]::GetPathRoot($destinationFull)
+
+    # 刚跑过 node --version 验证，进程句柄/杀软扫描可能还占着文件，
+    # 直接 Move 会 "Access to the path 'node.exe' is denied"。重试几次，仍失败就退化成逐个复制。
     if ($sourceRoot.Equals($destinationRoot, [StringComparison]::OrdinalIgnoreCase)) {
-        [IO.Directory]::Move((Get-XingshuExtendedPath $sourceFull),
-            (Get-XingshuExtendedPath $destinationFull))
-        return
+        for ($attempt = 1; $attempt -le 5; $attempt++) {
+            try {
+                [IO.Directory]::Move((Get-XingshuExtendedPath $sourceFull),
+                    (Get-XingshuExtendedPath $destinationFull))
+                return
+            } catch {
+                if ($attempt -eq 5) { break }
+                Start-Sleep -Milliseconds (300 * $attempt)
+            }
+        }
     }
+
     [IO.Directory]::CreateDirectory((Get-XingshuExtendedPath $destinationFull)) | Out-Null
     foreach ($file in [IO.Directory]::GetFiles((Get-XingshuExtendedPath $sourceFull), '*', [IO.SearchOption]::AllDirectories)) {
         $relative = $file.Substring((Get-XingshuExtendedPath $sourceFull).Length).TrimStart('\', '/')
         $target = Join-Path $destinationFull $relative
         [IO.Directory]::CreateDirectory((Get-XingshuExtendedPath ([IO.Path]::GetDirectoryName($target)))) | Out-Null
-        [IO.File]::Copy((Get-XingshuExtendedPath $file), (Get-XingshuExtendedPath $target), $false)
+        [IO.File]::Copy((Get-XingshuExtendedPath $file), (Get-XingshuExtendedPath $target), $true)
     }
+    # 源目录删不掉无所谓（临时目录，系统会清），不要让整个准备流程因此失败
+    try { Remove-Item -LiteralPath $sourceFull -Recurse -Force -ErrorAction Stop } catch { }
 }
 
 function Ensure-XingshuRuntime {
