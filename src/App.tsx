@@ -73,14 +73,6 @@ export function App() {
   const [status, setStatus] = useState("就绪");
   const [level, setLevel] = useState<StatusLevel>("idle");
   const [logText, setLogText] = useState("");
-  // 环境准备可以跳过：跳过状态记在本地，别每次启动都拦
-  const [envSkipped, setEnvSkipped] = useState(() => {
-    try {
-      return localStorage.getItem("xs-env-skipped") === "1";
-    } catch {
-      return false;
-    }
-  });
 
   // 日志属于哪次操作：切到别的目标时不要把上一个目标的日志混进来
   const [runTarget, setRunTarget] = useState("");
@@ -325,20 +317,8 @@ export function App() {
     );
   }
 
-  // 运行环境没准备好：默认进准备页，但允许跳过（跳过状态记在本地，不再反复拦）
-  if (env && !env.ready && !envSkipped) {
-    return (
-      <EnvSetupPage
-        onDone={() => {
-          setEnvSkipped(true);
-          try { localStorage.setItem("xs-env-skipped", "1"); } catch { /* 隐私模式忽略 */ }
-          hs.envStatus()
-            .then(setEnv)
-            .catch(() => setEnv({ ready: true, node: "", version: "", major: 0 }));
-        }}
-      />
-    );
-  }
+  // 运行环境不再做启动门禁：只有豆包 / DSH 完美破甲 / Seep 需要 Node，安装时各自自动准备。
+  // 「环境与诊断」入口保留在侧栏，用户想手动修复/查看时才进去。
 
   return (
     <div className="app-shell settings-mode">
@@ -364,7 +344,7 @@ export function App() {
               {navItem("seep", "Seep 逆向工作台", IconDatabase)}
               {navItem("skills", "Skills 管理", IconListChecks)}
               {navItem("tutorial", "使用教程", IconBookOpen)}
-              {navItem("env", "环境准备", IconDownload)}
+              {navItem("env", "环境与诊断", IconDownload)}
               {/* 品牌推广入口：链接在 data/targets.ts 里配置，留空即不渲染 */}
               {QQ_LINK ? (
                 <button type="button" className="settings-nav-item" onClick={openQQ}>
@@ -411,7 +391,7 @@ export function App() {
           {/* 顶部条：面包屑 + 状态徽标（与设计稿一致） */}
           <header className="settings-topbar">
             <div className="settings-crumb">
-              破甲目标 / <b>{current ? current.nav : view === "seep" ? "Seep 逆向工作台" : view === "skills" ? "Skills 管理" : view === "tutorial" ? "使用教程" : view === "profile" ? "个人中心" : "环境准备"}</b>
+              破甲目标 / <b>{current ? current.nav : view === "seep" ? "Seep 逆向工作台" : view === "skills" ? "Skills 管理" : view === "tutorial" ? "使用教程" : view === "profile" ? "个人中心" : "环境与诊断"}</b>
             </div>
             <div className="settings-topbar-right">
               {current && installed[current.id] ? <span className="badge badge-success">已安装</span> : null}
