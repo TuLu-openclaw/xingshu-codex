@@ -1180,20 +1180,6 @@ if (!app.requestSingleInstanceLock()) {
     showWindow();
   });
 
-  // 单实例：第二次启动只把已有窗口拉到前面，避免两个进程同时改同一批文件
-  const gotLock = app.requestSingleInstanceLock();
-  if (!gotLock) {
-    app.quit();
-    return;
-  }
-  app.on("second-instance", () => {
-    if (win && !win.isDestroyed()) {
-      if (win.isMinimized()) win.restore();
-      win.show();
-      win.focus();
-    }
-  });
-
   // 兜底：任何未捕获异常都不许让主进程悄悄挂掉
   process.on("uncaughtException", (e) => {
     try {
