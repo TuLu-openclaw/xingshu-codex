@@ -1,0 +1,33 @@
+/*
+  HarmonyOS Sans SC —— 华为官方发布、允许免费商用的中文字体。
+  从 ajacocks/harmonyos-sans-font 取原版 TTF 打进安装包，离线渲染，不依赖系统是否装了这套字体。
+  许可文本见 src/assets/fonts/LICENSE-HarmonyOS-Sans.txt。
+
+  为什么自带而不是写 "HarmonyOS Sans SC" 了事：
+  绝大多数 Windows 机器没装这套字体，只写字体名会静默退回微软雅黑，
+  字重、字距、字形全变 —— 官网那套观感就没了。
+*/
+
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("../assets/fonts/HarmonyOS_Sans_SC_Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("../assets/fonts/HarmonyOS_Sans_SC_Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("../assets/fonts/HarmonyOS_Sans_SC_Bold.ttf") format("truetype");
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
