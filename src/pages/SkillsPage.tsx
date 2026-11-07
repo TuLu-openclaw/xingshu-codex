@@ -62,7 +62,18 @@ export function SkillsPage({ skills, onSave, onReload }: Props) {
         </div>
 
         {total === 0 ? (
-          <p className="settings-card-description">未在 ~/.codex/skills 下找到技能目录。</p>
+          <div className="state-block">
+            <div className="state-icon">◎</div>
+            <div className="state-title">还没有可管理的技能</div>
+            <div className="state-desc">
+              技能来自随包的 Seep 工作台。先到「Codex 破甲」点一次安装，同步完再点「重新读取」。
+            </div>
+            <div className="state-actions">
+              <button type="button" className="btn btn-secondary" onClick={onReload}>
+                重新读取
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="settings-panel">
             {skills.map((s) => (
