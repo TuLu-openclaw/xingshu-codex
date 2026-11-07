@@ -771,6 +771,48 @@ function registerIpc() {
     }
   });
 
+  // 带备用线路的下载：先探主链接，不通就自动换备用，再把能用的那个丢给系统浏览器
+  ipcMain.handle("tool:openDownload", async (_e, url, alt) => {
+    const http = require("node:http");
+    const https = require("node:https");
+    const probe = (u, timeoutMs = 6000) =>
+      new Promise((resolve) => {
+        try {
+          const mod = u.startsWith("https:") ? https : http;
+          const req = mod.request(u, { method: "HEAD", timeout: timeoutMs }, (res) => {
+            res.resume();
+            resolve(res.statusCode >= 200 && res.statusCode < 400);
+          });
+          req.on("timeout", () => { req.destroy(); resolve(false); });
+          req.on("error", () => resolve(false));
+          req.end();
+        } catch {
+          resolve(false);
+        }
+      });
+
+    const open = async (u) => {
+      try { await shell.openExternal(u); return true; } catch { return false; }
+    };
+
+    if (typeof url !== "string" || !/^https?:\/\//.test(url)) {
+      return { ok: false, error: "invalid url" };
+    }
+    const mainOk = await probe(url);
+    if (mainOk) {
+      const ok = await open(url);
+      return { ok, usedAlt: false, url };
+    }
+    if (typeof alt === "string" && /^https?:\/\//.test(alt)) {
+      const altOk = await probe(alt);
+      const ok = await open(alt);
+      console.log(`[openDownload] 主链接不通，改用备用：${altOk ? "可用" : "未探通仍尝试打开"}`);
+      return { ok, usedAlt: true, url: alt };
+    }
+    const ok = await open(url);
+    return { ok, usedAlt: false, url, error: "主链接探测失败且没有备用链接" };
+  });
+
   ipcMain.handle("tool:quit", () => {
     app.quit();
     return { ok: true };

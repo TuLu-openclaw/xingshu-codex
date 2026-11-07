@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("hs", {
   listSkills: () => ipcRenderer.invoke("tool:skills:list"),
   saveSkills: (disabled) => ipcRenderer.invoke("tool:skills:save", disabled),
   openQQ: (url) => ipcRenderer.invoke("tool:openQQ", url),
+  openDownload: (url, alt) => ipcRenderer.invoke("tool:openDownload", url, alt),
   quit: () => ipcRenderer.invoke("tool:quit"),
   win: (action) => ipcRenderer.invoke("tool:win", action),
 

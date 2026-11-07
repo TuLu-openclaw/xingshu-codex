@@ -26,6 +26,8 @@ export type Target = {
   /** 备用下载（历史版本 / 第三方镜像）；官方不提供旧版时才填 */
   downloadAltUrl?: string;
   downloadAltLabel?: string;
+  /** auto：主链接不通自动换备用（只显示一个按钮）；manual：单独一个按钮 */
+  downloadAltMode?: "auto" | "manual";
   /** 这个目标额外需要的依赖（没有就是无额外依赖） */
   requires?: string;
 };
@@ -126,6 +128,9 @@ export const TARGETS: Target[] = [
     uninstallLabel: "卸载 DeepSeek",
     downloadUrl: "https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe",
     downloadLabel: "下载 DeepSeek Harness",
+    downloadAltUrl: "http://221.0.81.162:9002/1772156650257000000//DSH.exe",
+    downloadAltLabel: "备用线路",
+    downloadAltMode: "auto",
   },
   {
     id: "doubao",
@@ -140,6 +145,7 @@ export const TARGETS: Target[] = [
     // 官方只发最新版；新版服务端过滤更严，需要旧版时走第三方历史版本页（自行校验哈希、杀毒）
     downloadAltUrl: "https://mydown.yesky.com/pcsoft/119428/versions/",
     downloadAltLabel: "历史版本",
+    downloadAltMode: "manual",
   },
   {
     // DSH 完美破甲：随包 xingshu-armor 插件，自带提示词与 Node 运行时
@@ -154,6 +160,9 @@ export const TARGETS: Target[] = [
     uninstallLabel: "卸载 DSH 完美破甲",
     downloadUrl: "https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe",
     downloadLabel: "下载 DeepSeek Harness",
+    downloadAltUrl: "http://221.0.81.162:9002/1772156650257000000//DSH.exe",
+    downloadAltLabel: "备用线路",
+    downloadAltMode: "auto",
     requires: "Node 运行环境（激活后自动下载）",
   },
 ];

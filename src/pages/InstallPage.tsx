@@ -1,4 +1,5 @@
 import type { Target } from "../data/targets";
+import { useEffect, useState } from "react";
 import type { StatusLevel } from "../App";
 import { hs, type MemoryPrompt } from "../lib/hs";
 import { cx } from "../lib/cx";
@@ -31,6 +32,10 @@ export function InstallPage({
   onRestart,
 }: Props) {
   const isInstalled = Boolean(installed);
+  const [downloadNote, setDownloadNote] = useState("");
+
+  // 切目标就清掉上一条下载提示
+  useEffect(() => { setDownloadNote(""); }, [target.id]);
 
   return (
     <>
@@ -80,12 +85,25 @@ export function InstallPage({
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => hs.openQQ(target.downloadUrl as string)}
+              title={target.downloadAltMode === "auto" && target.downloadAltUrl
+                ? "主链接不通会自动改用备用线路下载"
+                : undefined}
+              onClick={() => {
+                const url = target.downloadUrl as string;
+                const alt = target.downloadAltMode === "auto" ? target.downloadAltUrl : undefined;
+                hs.openDownload(url, alt)
+                  .then((r) => {
+                    if (r && r.ok && r.usedAlt) {
+                      setDownloadNote("主链接不通，已自动改用备用线路下载");
+                    }
+                  })
+                  .catch(() => hs.openQQ(url));
+              }}
             >
               {target.downloadLabel || "下载应用"}
             </button>
           ) : null}
-          {target.downloadAltUrl ? (
+          {target.downloadAltUrl && target.downloadAltMode !== "auto" ? (
             <button
               type="button"
               className="btn btn-secondary"
@@ -117,6 +135,11 @@ export function InstallPage({
             {target.uninstallLabel}
           </button>
         </div>
+        {downloadNote ? (
+          <p className="settings-card-description" style={{ marginTop: 10, color: "#0f7a4a" }}>
+            {downloadNote}
+          </p>
+        ) : null}
       </div>
 
       <div className="settings-card-block">

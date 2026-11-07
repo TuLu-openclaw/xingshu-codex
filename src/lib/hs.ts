@@ -81,6 +81,8 @@ export type HsApi = {
   listSkills(): Promise<Skill[]>;
   saveSkills(disabled: string[]): Promise<{ ok: boolean; error?: string }>;
   openQQ(url: string): Promise<{ ok: boolean }>;
+  /** 主链接探测失败时自动改用备用链接，再交给系统浏览器打开 */
+  openDownload(url: string, alt?: string): Promise<{ ok: boolean; usedAlt?: boolean; url?: string; error?: string }>;
   quit(): Promise<{ ok: boolean }>;
   win(action: "minimize" | "maximize" | "close"): Promise<{ ok: boolean }>;
   licenseState(): Promise<LicenseState>;

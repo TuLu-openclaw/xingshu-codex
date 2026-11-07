@@ -73,6 +73,8 @@ export function App() {
   const [status, setStatus] = useState("就绪");
   const [level, setLevel] = useState<StatusLevel>("idle");
   const [logText, setLogText] = useState("");
+  // 日志属于哪次操作：切到别的目标时不要把上一个目标的日志混进来
+  const [runTarget, setRunTarget] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [toastLevel, setToastLevel] = useState<"success" | "error">("success");
   /** 本机卡密授权状态；null = 读取中。 */
@@ -135,6 +137,7 @@ export function App() {
   }, []);
 
   const runUninstall = useCallback(async (targetId: string) => {
+    setRunTarget(targetId);
     setLogText("");
     setStatus("正在卸载 …");
     setLevel("busy");
@@ -149,6 +152,7 @@ export function App() {
 
   // 安装：提示词取 memory/ 里 user 自己填的那份，技能库取随包的 Seep 工作台
   const runInstall = useCallback(async (targetId: string) => {
+    setRunTarget(targetId);
     setLogText("");
     setStatus("正在安装 …");
     setLevel("busy");
@@ -390,7 +394,7 @@ export function App() {
                 busy={busy}
                 status={status}
                 level={level}
-                logText={logText}
+                logText={runTarget === (current?.id ?? "") ? logText : ""}
                 onInstall={() => runInstall(current.id)}
                 onUninstall={() => runUninstall(current.id)}
                 onRestoreMemory={() => runRestoreMemory(current.id)}
@@ -403,7 +407,7 @@ export function App() {
                 busy={busy}
                 status={status}
                 level={level}
-                logText={logText}
+                logText={runTarget === (current?.id ?? "") ? logText : ""}
                 onInstall={() => runSeep("install")}
                 onVerify={() => runSeep("verify")}
                 onUninstall={() => runSeep("uninstall")}
