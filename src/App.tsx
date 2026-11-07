@@ -142,7 +142,8 @@ export function App() {
     setStatus("正在卸载 …");
     setLevel("busy");
     setBusy(true);
-    const res = await hs.uninstall(targetId);
+    let res;
+    try { res = await hs.uninstall(targetId); } catch (e) { setStatus("卸载失败：" + String((e as Error)?.message || e)); setLevel("err"); setBusy(false); return; }
     setInstalled(res.installed || {});
     setStatus(res.ok ? "已卸载 · 技能已一并清除" : "卸载失败（退出码 " + res.code + "）");
     setLevel(res.ok ? "ok" : "err");
@@ -157,7 +158,8 @@ export function App() {
     setStatus("正在安装 …");
     setLevel("busy");
     setBusy(true);
-    const res = await hs.install(targetId);
+    let res;
+    try { res = await hs.install(targetId); } catch (e) { setStatus("安装失败：" + String((e as Error)?.message || e)); setLevel("err"); setBusy(false); return; }
     setInstalled(res.installed || {});
     if (res.ok) {
       setStatus("已安装 · 提示词与技能库已写入");
@@ -183,12 +185,20 @@ export function App() {
       setStatus(label);
       setLevel("busy");
       setBusy(true);
-      const res =
-        action === "install"
-          ? await hs.seepInstall()
-          : action === "uninstall"
-            ? await hs.seepUninstall()
-            : await hs.seepVerify();
+      let res;
+      try {
+        res =
+          action === "install"
+            ? await hs.seepInstall()
+            : action === "uninstall"
+              ? await hs.seepUninstall()
+              : await hs.seepVerify();
+      } catch (e) {
+        setStatus("Seep 工作台操作失败：" + String((e as Error)?.message || e));
+        setLevel("err");
+        setBusy(false);
+        return;
+      }
       if (res.ok) {
         setStatus(
           action === "install" ? "Seep 工作台已部署" : action === "uninstall" ? "Seep 工作台已卸载" : "自检完成",
@@ -211,7 +221,8 @@ export function App() {
     setStatus("正在装回原始记忆 …");
     setLevel("busy");
     setBusy(true);
-    const res = await hs.restoreMemory(targetId);
+    let res;
+    try { res = await hs.restoreMemory(targetId); } catch (e) { setStatus("装回失败：" + String((e as Error)?.message || e)); setLevel("err"); setBusy(false); return; }
     setInstalled(res.installed || {});
     setStatus(res.ok ? "原始记忆已装回 · 自动重注入已暂停" : "装回失败（退出码 " + res.code + "）");
     setLevel(res.ok ? "ok" : "err");
@@ -221,7 +232,8 @@ export function App() {
   const runRestart = useCallback(async () => {
     setStatus("正在重启 Codex …");
     setLevel("busy");
-    const res = await hs.restartCodex();
+    let res;
+    try { res = await hs.restartCodex(); } catch (e) { setStatus("重启失败：" + String((e as Error)?.message || e)); setLevel("err"); return; }
     if (res.ok) {
       setStatus("Codex 已重启");
       setLevel("ok");
@@ -233,7 +245,8 @@ export function App() {
 
   const saveSkills = useCallback(
     async (disabled: string[]) => {
-      const res = await hs.saveSkills(disabled);
+      let res;
+      try { res = await hs.saveSkills(disabled); } catch (e) { setStatus("保存失败：" + String((e as Error)?.message || e)); setLevel("err"); setToastLevel("error"); setToast("保存失败：" + String((e as Error)?.message || e)); return; }
       if (res.ok) {
         setStatus("Skills 配置已保存 — 重启 Codex 生效");
         setLevel("ok");
