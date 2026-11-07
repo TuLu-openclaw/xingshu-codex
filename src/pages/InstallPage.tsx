@@ -85,6 +85,16 @@ export function InstallPage({
               {target.downloadLabel || "下载应用"}
             </button>
           ) : null}
+          {target.downloadAltUrl ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              title="官方只提供最新版；这是第三方历史版本页，下载后请自行校验哈希并杀毒"
+              onClick={() => hs.openQQ(target.downloadAltUrl as string)}
+            >
+              {target.downloadAltLabel || "历史版本"}
+            </button>
+          ) : null}
           {target.id === "codex" && (
             <button type="button" className="btn btn-secondary" disabled={busy} onClick={onRestart}>
               重启 Codex

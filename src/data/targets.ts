@@ -23,6 +23,9 @@ export type Target = {
   downloadUrl?: string;
   /** 下载按钮文案 */
   downloadLabel?: string;
+  /** 备用下载（历史版本 / 第三方镜像）；官方不提供旧版时才填 */
+  downloadAltUrl?: string;
+  downloadAltLabel?: string;
   /** 这个目标额外需要的依赖（没有就是无额外依赖） */
   requires?: string;
 };
@@ -134,6 +137,9 @@ export const TARGETS: Target[] = [
     uninstallLabel: "卸载豆包",
     downloadUrl: "https://www.doubao.com/download",
     downloadLabel: "下载豆包",
+    // 官方只发最新版；新版服务端过滤更严，需要旧版时走第三方历史版本页（自行校验哈希、杀毒）
+    downloadAltUrl: "https://mydown.yesky.com/pcsoft/119428/versions/",
+    downloadAltLabel: "历史版本",
   },
   {
     // DSH 完美破甲：随包 xingshu-armor 插件，自带提示词与 Node 运行时

@@ -28,6 +28,7 @@ import {
   IconCircleAlert,
   IconCode,
   IconDatabase,
+  IconDownload,
   IconGlobe,
   IconHelp,
   IconListChecks,
@@ -282,6 +283,22 @@ export function App() {
     return <ActivationPage license={license} onActivated={setLicense} />;
   }
 
+  // 手动进入「环境准备」：整屏跑一遍依赖准备（进页面就自动开始）
+  if (view === "env") {
+    return (
+      <EnvSetupPage
+        onDone={() => {
+          hs.envStatus()
+            .then((st) => {
+              setEnv(st);
+              setView(TARGETS[0].id);
+            })
+            .catch(() => setView(TARGETS[0].id));
+        }}
+      />
+    );
+  }
+
   // 运行环境没准备好：激活后自动下载 Node / npm / pnpm
   if (env && !env.ready) {
     return (
@@ -319,6 +336,7 @@ export function App() {
               {navItem("seep", "Seep 逆向工作台", IconDatabase)}
               {navItem("skills", "Skills 管理", IconListChecks)}
               {navItem("tutorial", "使用教程", IconBookOpen)}
+              {navItem("env", "环境准备", IconDownload)}
               {/* 品牌推广入口：链接在 data/targets.ts 里配置，留空即不渲染 */}
               {QQ_LINK ? (
                 <button type="button" className="settings-nav-item" onClick={openQQ}>
