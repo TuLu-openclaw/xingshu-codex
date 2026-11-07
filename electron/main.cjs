@@ -392,8 +392,15 @@ function runPowerShell(args, label, timeoutMs) {
         sentChars = decodeConsoleOutput(rawOut).length;
       }
       if (!delta) return;
-      out = (out + delta).slice(-60000);
-      send("tool:log", { label, text: delta });
+      // -EncodedCommand / -Command 模式下，PowerShell 会把 Write-Host 序列化成 CLIXML 塞进 stderr，
+      // 直接显示会是一大坨 XML，这里滤掉，只留人能看的行
+      const clean = delta
+        .replace(/#<\s*CLIXML[^\n]*\n?/g, "")
+        .replace(/<Objs\b[\s\S]*?<\/Objs>/g, "")
+        .replace(/^\s*<\/?[A-Za-z][^>]*>\s*$/gm, "");
+      if (!clean.trim()) return;
+      out = (out + clean).slice(-60000);
+      send("tool:log", { label, text: clean });
     };
 
     // 先把要跑的命令打到日志里：出问题时至少能看到"到底启动了什么"
@@ -762,17 +769,60 @@ function registerIpc() {
 
   // ---------- 破甲运行环境（激活后自动准备 Node / npm / pnpm） ----------
   ipcMain.handle("env:status", () => envStatus());
-  ipcMain.handle("env:prepare", () => {
+  // 环境准备：先按 -File 跑（输出最干净），零输出失败再换 -EncodedCommand / -Command，
+  // 还不行就把 PowerShell 版本与执行策略捞出来，界面里直接能看到。
+  ipcMain.handle("env:prepare", async () => {
     const script = p("scripts", "prepare-env.ps1");
+    const label = "准备破甲运行环境";
     if (!fs.existsSync(script)) {
       const msg =
-        "[错误] 找不到环境准备脚本：\n" +
-        script +
+        "[错误] 找不到环境准备脚本：\n" + script +
         "\n安装包不完整或被安全软件删除，请重新覆盖安装。\n";
-      send("tool:log", { label: "准备破甲运行环境", text: msg });
+      send("tool:log", { label, text: msg });
       return { ok: false, code: -2, out: msg, error: msg };
     }
-    return runPowerShell(["-File", script], "准备破甲运行环境", 1800000);
+
+    const q = `'${script.replace(/'/g, "''")}'`;
+    const toB64 = (s) => Buffer.from(s, "utf16le").toString("base64");
+    const attempts = [
+      ["-File", script],
+      ["-EncodedCommand", toB64(`& ${q}`)],
+      ["-Command", `Set-ExecutionPolicy -Scope Process Bypass -Force; & ${q}`],
+    ];
+
+    let res = null;
+    for (let i = 0; i < attempts.length; i++) {
+      if (i > 0) send("tool:log", { label, text: `[重试 ${i}] 换 ${attempts[i][0]} 方式再跑一次\n` });
+      res = await runPowerShell(attempts[i], label, 1800000);
+      if (res.ok || String(res.out || "").trim()) break;
+    }
+
+    // 落一份磁盘日志：界面日志万一没收到，用户也能把这个文件发出来
+    try {
+      const logDir = path.join(app.getPath("userData"), "logs");
+      fs.mkdirSync(logDir, { recursive: true });
+      fs.appendFileSync(
+        path.join(logDir, "env-prepare.log"),
+        `\n===== ${new Date().toISOString()} =====\n[script] ${script}\n[ok] ${res && res.ok} [code] ${res && res.code}\n${(res && res.out) || "(无输出)"}\n`,
+        "utf8",
+      );
+    } catch { /* 写不了日志不影响主流程 */ }
+
+    if (!res || (!res.ok && !String(res.out || "").trim())) {
+      const probe = await runPowerShell(
+        ["-Command", "$PSVersionTable.PSVersion.ToString(); [Environment]::Is64BitProcess; (Get-ExecutionPolicy -List | Out-String)"],
+        "环境诊断",
+        30000,
+      );
+      const info =
+        "[诊断] 环境准备脚本三种方式都没有任何输出\n" +
+        "[脚本] " + script + "\n" +
+        "[powershell] " + (probe.out || "(也拿不到版本)") + "\n" +
+        "常见原因：安全软件拦截 powershell.exe、组策略禁用脚本、AppLocker/ConstrainedLanguage。\n";
+      send("tool:log", { label, text: info });
+      return { ok: false, code: -3, out: info, error: info };
+    }
+    return res;
   });
 
   // ---------- 卡密授权 ----------
