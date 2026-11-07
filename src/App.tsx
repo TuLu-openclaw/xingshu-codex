@@ -384,22 +384,54 @@ export function App() {
         </nav>
 
         <div className="settings-content">
+          {/* 顶部条：面包屑 + 状态徽标（与设计稿一致） */}
+          <header className="settings-topbar">
+            <div className="settings-crumb">
+              破甲目标 / <b>{current ? current.nav : view === "seep" ? "Seep 逆向工作台" : view === "skills" ? "Skills 管理" : view === "tutorial" ? "使用教程" : view === "profile" ? "个人中心" : "环境准备"}</b>
+            </div>
+            <div className="settings-topbar-right">
+              {current && installed[current.id] ? <span className="badge badge-success">已安装</span> : null}
+              <span className="badge badge-neutral">{"v" + APP_VERSION}</span>
+            </div>
+          </header>
           <div className="settings-content-inner">
             {current && (
-              <InstallPage
-                key={current.id}
-                target={current}
-                installed={installed[current.id]}
-                memory={memory}
-                busy={busy}
-                status={status}
-                level={level}
-                logText={runTarget === (current?.id ?? "") ? logText : ""}
-                onInstall={() => runInstall(current.id)}
-                onUninstall={() => runUninstall(current.id)}
-                onRestoreMemory={() => runRestoreMemory(current.id)}
-                onRestart={runRestart}
-              />
+              <div className="settings-grid">
+                <div className="settings-main">
+                  <InstallPage
+                    key={current.id}
+                    target={current}
+                    installed={installed[current.id]}
+                    memory={memory}
+                    busy={busy}
+                    status={status}
+                    level={level}
+                    logText={runTarget === (current?.id ?? "") ? logText : ""}
+                    onInstall={() => runInstall(current.id)}
+                    onUninstall={() => runUninstall(current.id)}
+                    onRestoreMemory={() => runRestoreMemory(current.id)}
+                    onRestart={runRestart}
+                  />
+                </div>
+                <aside className="settings-rail">
+                  <div className="rail-card">
+                    <p className="rail-title">授权</p>
+                    <div className="rail-row"><span>类型</span><span>企业授权</span></div>
+                    <div className="rail-row"><span>卡密</span><span>{license?.kamiMasked || "—"}</span></div>
+                    <div className="rail-row"><span>状态</span><span>{license?.status === "active" ? "已激活" : license?.status === "expired" ? "已过期" : "未激活"}</span></div>
+                    <div className="rail-row"><span>设备码</span><span>{(license?.device || "").slice(0, 9) || "—"}</span></div>
+                    <div className="rail-row"><span>最近校验</span><span>{license?.lastCheck ? String(license.lastCheck).slice(0, 10) : "—"}</span></div>
+                  </div>
+                  <div className="rail-card">
+                    <p className="rail-title">操作顺序</p>
+                    <ol className="rail-steps">
+                      <li><span className="rail-n">1</span><span><b>先填提示词</b>把正文粘进 memory 目录的 .md 文件</span></li>
+                      <li><span className="rail-n">2</span><span><b>再点安装</b>装完把目标应用彻底关闭再打开</span></li>
+                      <li><span className="rail-n">3</span><span><b>要逆向能力</b>到 Seep 工作台部署一次工具链</span></li>
+                    </ol>
+                  </div>
+                </aside>
+              </div>
             )}
             {view === "seep" && (
               <SeepPage

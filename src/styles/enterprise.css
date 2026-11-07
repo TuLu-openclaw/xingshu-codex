@@ -297,3 +297,90 @@
 .env-btn.ghost { background: var(--es-bg); border-color: var(--es-line); color: var(--es-text); }
 .env-btn.ghost:hover { background: var(--es-surface); }
 .env-foot { margin: 16px 0 0; font-size: 12px; color: var(--es-muted); line-height: 1.7; }
+
+/* ---------- 主区两栏：左内容 + 右信息栏（与设计稿一致） ---------- */
+.settings-shell-full .settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 32px;
+  align-items: start;
+}
+.settings-shell-full .settings-main { min-width: 0; }
+.settings-shell-full .settings-rail { position: sticky; top: 0; }
+.settings-shell-full .rail-card {
+  border: 1px solid var(--es-line);
+  border-radius: 8px;
+  padding: 22px 24px;
+  background: var(--es-bg);
+}
+.settings-shell-full .rail-card + .rail-card { margin-top: 24px; }
+.settings-shell-full .rail-title {
+  margin: 0 0 14px;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--es-muted);
+}
+.settings-shell-full .rail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 13px;
+}
+.settings-shell-full .rail-row > span:first-child { color: var(--es-muted); flex: 0 0 auto; }
+.settings-shell-full .rail-row > span:last-child {
+  font-family: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--es-text);
+  text-align: right;
+  word-break: break-all;
+}
+.settings-shell-full .rail-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.settings-shell-full .rail-steps li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--es-muted);
+}
+.settings-shell-full .rail-n {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid var(--es-line);
+  display: grid; place-items: center;
+  font-size: 12px; color: var(--es-muted);
+}
+.settings-shell-full .rail-steps b { display: block; color: var(--es-text); font-weight: 600; font-size: 13px; }
+
+@media (max-width: 1180px) {
+  .settings-shell-full .settings-grid { grid-template-columns: 1fr; gap: 24px; }
+  .settings-shell-full .settings-rail { position: static; }
+}
+
+/* ---------- 顶部条 ---------- */
+.settings-shell-full .settings-topbar {
+  height: 72px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--es-line);
+  background: var(--es-bg);
+}
+.settings-shell-full .settings-crumb { font-size: 13px; color: var(--es-muted); }
+.settings-shell-full .settings-crumb b { color: var(--es-text); font-weight: 600; }
+.settings-shell-full .settings-topbar-right { display: flex; align-items: center; gap: 10px; }
+
+/* 侧栏宽度与设计稿对齐 */
+.settings-shell-full .settings-nav { width: 248px; flex: 0 0 248px; }
+
+/* 行内密度收紧，贴近设计稿 */
+.settings-shell-full .settings-row { padding: 12px 16px; }
