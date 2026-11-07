@@ -104,12 +104,46 @@ function Get-NodeExe {
     $cand = @(
         (Join-Path $env:ProgramFiles 'nodejs\node.exe'),
         (Join-Path ${env:ProgramFiles(x86)} 'nodejs\node.exe'),
-        (Join-Path $env:LOCALAPPDATA 'Programs\nodejs\node.exe')
+        (Join-Path $env:LOCALAPPDATA 'Programs\nodejs\node.exe'),
+        (Join-Path $env:LOCALAPPDATA 'XingshuArmor\runtime\node.exe')
     )
     foreach ($c in $cand) { if ($c -and (Test-Path -LiteralPath $c)) { return $c } }
+    # 随包运行时（ensure-runtime 下到 %LOCALAPPDATA%\XingshuArmor\runtime\node-v*-win-*）
+    $rt = Join-Path $env:LOCALAPPDATA 'XingshuArmor\runtime'
+    if (Test-Path -LiteralPath $rt) {
+        $hit = Get-ChildItem -LiteralPath $rt -Directory -Filter 'node-v*-win-*' -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            ForEach-Object { Join-Path $_.FullName 'node.exe' } |
+            Where-Object { Test-Path -LiteralPath $_ } |
+            Select-Object -First 1
+        if ($hit) { return $hit }
+    }
     $g = Get-Command node.exe -ErrorAction SilentlyContinue
     if ($g) { return $g.Source }
     return $null
+}
+
+# 找不到 Node 就自己装：豆包这条链路必须要有 Node，不该让用户先去点「环境准备」
+function Ensure-NodeExe {
+    $found = Get-NodeExe
+    if ($found) { return $found }
+    $ensure = Join-Path $PSScriptRoot 'kits\dsh-perfect\scripts\ensure-runtime.ps1'
+    if (-not (Test-Path -LiteralPath $ensure)) {
+        Write-Host '  [!] 随包缺少确保 Node 的脚本，无法自动准备运行环境' -ForegroundColor Yellow
+        return $null
+    }
+    Write-Host '  [i] 未找到 Node，正在自动准备（首次约 1–3 分钟，只装 Node）…' -ForegroundColor Yellow
+    try {
+        . $ensure
+        $candidate = Ensure-XingshuRuntime
+        if ($candidate -and $candidate.NodePath -and (Test-Path -LiteralPath $candidate.NodePath)) {
+            Write-Host "  [√] Node 已就绪：$($candidate.NodePath)" -ForegroundColor Green
+            return $candidate.NodePath
+        }
+    } catch {
+        Write-Host ("  [!] 自动准备 Node 失败：" + $_.Exception.Message) -ForegroundColor Yellow
+    }
+    return (Get-NodeExe)
 }
 
 function Stop-Injector {
@@ -128,7 +162,7 @@ function Start-Injector([string]$PromptFile) {
         Write-Host '  [!] 缺少 scripts\doubao-injector.js，跳过注入守护' -ForegroundColor Yellow
         return $false
     }
-    $node = Get-NodeExe
+    $node = Ensure-NodeExe
     if (-not $node) {
         Write-Host '  [!] 没找到 Node，跳过注入守护（先在应用里跑一次环境准备）' -ForegroundColor Yellow
         Write-Log 'Injector skipped: node not found'
