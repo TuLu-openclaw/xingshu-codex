@@ -309,8 +309,25 @@ foreach ($pDir in $profileDirs) {
 
     Push-Location $pDir
     try {
-        if ($pnpmPath) { & $pnpmPath install }
-        else { & $npmPath exec --yes --package=pnpm@10 -- pnpm install }
+        # 用与 profile 现有 node_modules 相同的 pnpm 大版本，否则低版本会把高版本布局
+        # 判定为「需要重建」，进而在无 TTY 环境下抛 ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY。
+        $pnpmMajor = '10'
+        $modulesYaml = Join-Path $nmDir '.modules.yaml'
+        if (Test-Path -LiteralPath $modulesYaml) {
+            $mm = Select-String -LiteralPath $modulesYaml -Pattern 'pnpm@(\d+)' | Select-Object -First 1
+            if ($mm) { $pnpmMajor = $mm.Matches[0].Groups[1].Value }
+        }
+        Write-Host "    使用 pnpm@$pnpmMajor（与现有 node_modules 对齐）" -ForegroundColor Gray
+        $pnpmArgs = @('install', '--config.confirmModulesPurge=false', '--config.frozenLockfile=false', '--config.reporter=append-only')
+
+        $useBundled = $false
+        if ($pnpmPath) {
+            $pv = ""
+            try { $pv = (& $pnpmPath --version 2>$null | Out-String).Trim() } catch { }
+            if ($pv -match '^(\d+)\.' -and $Matches[1] -eq $pnpmMajor) { $useBundled = $true }
+        }
+        if ($useBundled) { & $pnpmPath @pnpmArgs }
+        else { & $npmPath exec --yes --package="pnpm@$pnpmMajor" -- pnpm @pnpmArgs }
         if ($LASTEXITCODE -ne 0) {
             throw "依赖安装失败，退出码 $LASTEXITCODE。请检查网络连接后重新运行安装器。"
         } else {

@@ -40,6 +40,10 @@ if (-not (Test-Path -LiteralPath $kit)) {
 
 # 宿主进程不是交互式控制台：让插件安装脚本不要弹「按回车退出」也不要问序号
 $env:XS_SILENT = '1'
+# pnpm 在没有 TTY 时会因为「是否删除 node_modules」的确认提示而中止
+# （ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY），这里一并关掉
+$env:npm_config_confirm_modules_purge = 'false'
+$env:npm_config_reporter = 'append-only'
 
 # 预先选好 profile，避免插件脚本进入交互分支
 if (-not $env:DSH_PROFILE) {
