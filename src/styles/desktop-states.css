@@ -1,0 +1,115 @@
+/*
+  桌面端交互状态（Windows Electron）：键盘焦点、禁用、选中、空/加载/错误态。
+  为什么单独一份：enterprise.css 只负责"看起来像华为"，交互反馈要能被所有页面共用，
+  以后加页面不用再重复写。
+*/
+
+/* ---------- 焦点：键盘 Tab 必须看得见，鼠标点不留框 ---------- */
+.settings-shell-full :focus { outline: none; }
+
+.settings-shell-full :focus-visible,
+.activation-shell :focus-visible,
+.env-screen :focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 输入框自己的聚焦样式另算，别叠两个框 */
+.settings-shell-full input:focus-visible,
+.activation-shell .ax-input:focus-visible {
+  outline: none;
+}
+
+/* ---------- 桌面手感：按钮不显示手型，链接才显示 ---------- */
+.settings-shell-full button,
+.activation-shell button,
+.env-screen button {
+  cursor: default;
+  user-select: none;
+}
+.settings-shell-full a,
+.activation-shell a {
+  cursor: pointer;
+}
+
+/* ---------- 禁用 ---------- */
+.settings-shell-full button:disabled,
+.settings-shell-full .btn:disabled,
+.activation-shell button:disabled,
+.env-screen button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+/* ---------- 选中文本：和主色一致的黑底白字 ---------- */
+.settings-shell-full ::selection,
+.activation-shell ::selection,
+.env-screen ::selection {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* ---------- 悬停：行和导航都要有反馈，但不能靠花哨 ---------- */
+.settings-shell-full .settings-row:hover { background: #fafafa; }
+.settings-shell-full .settings-nav-item:active { transform: translateY(1px); }
+.settings-shell-full .btn:active:not(:disabled) { transform: translateY(1px); }
+
+/* ---------- 空 / 加载 / 错误 三态（所有列表页共用） ---------- */
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 24px;
+  border: 1px solid #dedede;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+}
+.state-block .state-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1f3f5;
+  color: #666666;
+  font-size: 18px;
+}
+.state-block .state-title { font-size: 16px; font-weight: 700; color: #000000; }
+.state-block .state-desc { font-size: 13px; line-height: 1.7; color: #666666; max-width: 34em; }
+.state-block .state-actions { display: flex; gap: 12px; margin-top: 6px; }
+
+.state-block.is-error { border-color: #f0c9c9; background: #fffafa; }
+.state-block.is-error .state-icon { background: #fdecec; color: #c02b2b; }
+
+/* 加载：三根跳动的竖条（比转圈更'桌面'，也不占地方） */
+.state-loading {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 18px;
+}
+.state-loading i {
+  width: 4px;
+  background: #000000;
+  border-radius: 2px;
+  animation: state-bar 900ms ease-in-out infinite;
+}
+.state-loading i:nth-child(1) { animation-delay: 0ms; }
+.state-loading i:nth-child(2) { animation-delay: 120ms; }
+.state-loading i:nth-child(3) { animation-delay: 240ms; }
+
+@keyframes state-bar {
+  0%, 100% { height: 6px; opacity: 0.4; }
+  50% { height: 18px; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state-loading i { animation: none; height: 12px; opacity: 0.6; }
+  .settings-shell-full .settings-nav-item:active,
+  .settings-shell-full .btn:active:not(:disabled) { transform: none; }
+}
