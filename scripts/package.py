@@ -114,10 +114,14 @@ def build_stage():
 
     old = os.path.join(STAGE, "electron.exe")
     new = os.path.join(STAGE, APP_EXE)
+    if not os.path.exists(old) and not os.path.exists(new):
+        raise SystemExit("[错误] 打包目录里没有 electron.exe：" + STAGE + "（electron 依赖没装好？）")
     if os.path.exists(old):
         if os.path.exists(new):
             os.remove(new)
         os.rename(old, new)
+    if not os.path.exists(new):
+        raise SystemExit("[错误] 重命名后的主程序不存在：" + new)
     log("[2/4] 应用本体与资源就位")
 
 
@@ -128,7 +132,8 @@ def rcedit():
     tool = os.path.join(CACHE, "rcedit-x64.exe")
     if not os.path.exists(tool):
         log("  下载 rcedit …")
-        urllib.request.urlretrieve(RCEDIT_URL, tool)
+        with urllib.request.urlopen(RCEDIT_URL, timeout=120) as r, open(tool, "wb") as f:
+            shutil.copyfileobj(r, f)
     args = [
         tool, exe,
         "--set-icon", icon,
@@ -143,7 +148,11 @@ def rcedit():
     ]
     r = subprocess.run(args, capture_output=True, text=True)
     if r.returncode != 0:
-        log("  [警告] rcedit 失败：" + (r.stderr or "")[:200])
+        msg = "rcedit 失败：" + (r.stderr or "")[:300]
+        # CI 上必须成功，否则发出去就是个没图标没版本号的 exe
+        if os.environ.get("REQUIRE_RCEDIT") == "1":
+            raise SystemExit("[错误] " + msg)
+        log("  [警告] " + msg)
     else:
         log("[3/4] 已写入 exe 图标与版本信息")
 
