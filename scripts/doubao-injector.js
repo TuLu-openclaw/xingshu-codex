@@ -164,6 +164,15 @@ function buildHookScript(promptText, rewritePairs) {
               }
             }
           }
+          try {
+            const last = (j.messages || [])[0] || null;
+            const blk = last && last.content_block && last.content_block[0];
+            const tb2 = blk && blk.content && blk.content.text_block;
+            if (tb2 && typeof tb2.text === 'string') {
+              window.__xs_last_user_text__ = tb2.text.slice(-400);
+              window.__xs_retry_count__ = 0;
+            }
+          } catch (e) {}
           init = Object.assign({}, init, { body: JSON.stringify(j) });
         }
       } catch (e) { /* 钩子异常就按原样发 */ }
