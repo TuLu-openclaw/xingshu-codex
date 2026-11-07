@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
   顺序即层叠，重排会改变渲染结果。
 */
 import "./styles/fonts.css";
+import "./styles/fonts-harmony.css";
 import "./styles/tokens.css";
 import "./styles/scale.css";
 import "./styles/base.css";
@@ -32,6 +33,7 @@ import "./styles/chat-links.css";
 import "./styles/composer-autocomplete.css";
 import "./styles/plugins.css";
 import "./styles/enterprise.css";
+import "./styles/desktop-states.css";
 import "./styles/extensions.css";
 import "./styles/plugin-launcher.css";
 import "./styles/responsive.css";
