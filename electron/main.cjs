@@ -183,7 +183,21 @@ function memoryPrompt() {
   } catch {
     return null;
   }
+  // 目标专属精简版（豆包 / WorkBuddy 有字符上限）不是全局提示词，跳过
+  const TARGET_ONLY = new Set(["豆包破甲.md", "WorkBuddy破甲.md"]);
+  const PREFERRED = "星枢记忆.md";
+  // 有固定名就优先用它，避免被同目录其他 .md 抢走
+  if (names.includes(PREFERRED)) {
+    try {
+      const full = path.join(dir, PREFERRED);
+      const chars = fs.readFileSync(full, "utf8").trim().length;
+      if (chars > 0) return { path: full, name: PREFERRED, chars };
+    } catch {
+      /* 落到下面的兜底 */
+    }
+  }
   for (const name of names) {
+    if (TARGET_ONLY.has(name)) continue;
     try {
       const full = path.join(dir, name);
       const text = fs.readFileSync(full, "utf8");
