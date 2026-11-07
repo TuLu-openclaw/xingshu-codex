@@ -523,7 +523,9 @@ if ($promptText.Contains('__CODEX_HOME__')) {
 }
 
 $configPromptPath = $targetPrompt.Replace('\', '/')
-$newLine = 'model_instructions_file = "' + $configPromptPath.Replace('"', '\"') + '"'
+$newLine = 'model_instructions_file = "' + $configPromptPath + '"'
+# TOML 基础字符串里反斜杠是转义符：写成 C:\Users 会被当成 \U 转义，整个 config.toml 解析失败。
+# 所以路径一律用正斜杠（Windows API 全接受），并且不再需要转义引号。
 $linePattern = '(?m)^\s*model_instructions_file\s*=\s*.*$'
 if ([regex]::IsMatch($configText, $linePattern)) {
     $configText = [regex]::Replace($configText, $linePattern, $newLine, 1)
