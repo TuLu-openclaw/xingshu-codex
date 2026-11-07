@@ -239,10 +239,18 @@ function ensureDoubao(promptText, rewritePairs) {
   if (!promptText) { console.error('缺少 --prompt <文件>'); process.exit(1); }
 
   logLine(`start port=${PORT} prompt=${promptText.length}字 轮询=${SLEEP_MS}ms exe=${DOUBAO_EXE || '-'}`);
+  // 只在状态变化时写日志：2.5 秒一行会把日志撑到几十 MB
+  let lastState = '';
+  let lastBeat = 0;
   for (;;) {
     let r = await injectAll(promptText, REWRITE);
     if (r === 'no-port') r = ensureDoubao(promptText, REWRITE);
-    logLine(r);
+    const now = Date.now();
+    if (r !== lastState || now - lastBeat > 600000) {
+      logLine(r);
+      lastState = r;
+      lastBeat = now;
+    }
     if (ONCE) process.exit(0);
     await new Promise((s) => setTimeout(s, SLEEP_MS));
   }
