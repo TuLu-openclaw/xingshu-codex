@@ -44,3 +44,8 @@
   Copyright © 2026 星枢[未来科技]，署名「星枢」，按 MIT 授权。
 - **上游衍生部分**：保留上游署名，不因本项目改名而移除其权利人信息。
 - 如需以上游名义二次分发 `seep-kit/`，请遵守其 GPL-3.0 条款（保留许可证、提供对应源码）。
+
+## HarmonyOS Sans 字体
+
+界面中文字体使用华为发布的 HarmonyOS Sans SC（官方声明免费商用）。
+字体文件在构建时下载，许可文本见 src/assets/fonts/LICENSE-HarmonyOS-Sans.txt。
